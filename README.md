@@ -5,20 +5,20 @@
 This addon allows you to enable/disable many other mods from a single location, including LSCG.
 
 ### TamperMonkey install:
-**Stable:** 
+**Stable (official LSCG):** 
 https://github.com/littlesera/LSCG/raw/main/lscgLoader.user.js
 
-**Dev:** 
-https://github.com/littlesera/LSCG/raw/dev/lscgLoader-dev.user.js
+**Dev (Azer147 Dev version):** 
+https://github.com/Azer147/LSCG/raw/dev/lscgLoader-dev.user.js
 
 ### Bookmark:
-**Stable:** 
+**Stable (official LSCG):** 
 ```
 javascript:(()=>{fetch('https://littlesera.github.io/LSCG/bundle.js').then(r=>r.text()).then(r=>eval(r));})();
 ```
-**Dev:**
+**Dev (Azer147 Dev version):** 
 ```
-javascript:(()=>{fetch('https://littlesera.github.io/LSCG/dev/bundle.js').then(r=>r.text()).then(r=>eval(r));})();
+javascript:(()=>{fetch('https://azer147.github.io/LSCG/dev/bundle.js').then(r=>r.text()).then(r=>eval(r));})();
 ```
 
 ## **Wiki Help**
