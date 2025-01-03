@@ -11,6 +11,7 @@ import { DeafState } from "./States/DeafState";
 import { FrozenState } from "./States/FrozenState";
 import { GaggedState } from "./States/GaggedState";
 import { RedressedState } from "./States/RedressedState";
+import { SpreadingOutfitState } from "./States/SpreadingOutfitState";
 import { ArousalPairedState } from "./States/ArousalPairedState";
 import { PairedBaseState } from "./States/PairedBaseState";
 import { OrgasmSiphonedState } from "./States/OrgasmSiphonedState";
@@ -75,6 +76,7 @@ export class StateModule extends BaseModule {
     GaggedState: GaggedState;
     ResizedState: ResizedState;
     RedressedState: RedressedState;
+    SpreadingOutfitState: SpreadingOutfitState;
     PolymorphedState: PolymorphedState;
     BuffedState: BuffedState;
     BarrierState: BarrierState;
@@ -107,6 +109,7 @@ export class StateModule extends BaseModule {
         this.GaggedState = new GaggedState(this);
         this.ResizedState = new ResizedState(this);
         this.RedressedState = new RedressedState(this);
+        this.SpreadingOutfitState = new SpreadingOutfitState(this);
         this.PolymorphedState = new PolymorphedState(this);
         this.BuffedState = new BuffedState(this);
         this.BarrierState = new BarrierState(this);
@@ -124,6 +127,7 @@ export class StateModule extends BaseModule {
             this.HornyState,
             this.DeniedState,
             this.RedressedState,
+            this.SpreadingOutfitState,
             this.PolymorphedState,
             this.ResizedState,
             this.ArousalPairedState,
@@ -353,8 +357,8 @@ export class StateModule extends BaseModule {
         };
     }
 
-    Clear(emote: boolean, magical: boolean = false) {
-        this.States.forEach(s => s.Recover(emote));
+    Clear(emote: boolean, magical: boolean = false, sender: Character | null) {
+        this.States.forEach(s => s.Recover(emote, sender));
     }
 
     IncomingUnpair(sender: number, msg: LSCGMessageModel) {

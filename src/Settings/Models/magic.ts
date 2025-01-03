@@ -18,6 +18,7 @@ export enum LSCGSpellEffect {
     paired_arousal = "Pairing", 
     orgasm_siphon = "Siphoning", 
     outfit = "Outfit",
+    spreading_outfit = "Spreading Outfit",
     polymorph = "Polymorph",
     dispell = "Dispell",
     xRay = "X-Ray Vision",
