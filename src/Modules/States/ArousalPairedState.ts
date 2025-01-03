@@ -60,7 +60,7 @@ export class ArousalPairedState extends PairedBaseState {
         super.Tick(now);
     }
 
-    Recover(emote?: boolean | undefined): BaseState | undefined {
+    Recover(emote?: boolean, sender?: Character | null): BaseState | undefined {
         if (emote) SendAction("%NAME%'s breathing calms down as %PRONOUN% regains control of %POSSESSIVE% arousal.")
         return super.Recover(emote);
     }

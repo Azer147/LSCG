@@ -714,7 +714,7 @@ export class MagicModule extends BaseModule {
                         break;
                     case LSCGSpellEffect.dispell:
                         SendAction("%NAME% gasps, blinking as any magic affecting %INTENSIVE% is removed.");
-                        this.stateModule.Clear(false, true);
+                        this.stateModule.Clear(false, true, sender);
                         break;
                     case LSCGSpellEffect.bless:
                         state = this.stateModule.BuffedState.Bless(sender?.MemberNumber, true, duration);
@@ -748,6 +748,15 @@ export class MagicModule extends BaseModule {
                                 SendAction("%NAME% trembles as %POSSESSIVE% clothing shimmers and morphs around %INTENSIVE%.") : 
                                 SendAction("%NAME% squeaks as %POSSESSIVE% clothing shimmers and morphs around %INTENSIVE%.");
                             state = this.stateModule.RedressedState.Apply(spell, sender?.MemberNumber, duration);
+                        }
+                        break;
+                    case LSCGSpellEffect.spreading_outfit:
+                        if (!!spell.Outfit?.Code) {
+                            this.stateModule.GaggedState.Active ? 
+                                SendAction("%NAME% trembles as a cursed clothes start to spread slowly around %INTENSIVE%.") : 
+                                SendAction("%NAME% squeaks as a cursed clothes start to spread slowly around %INTENSIVE%.");
+                            SendAction(`%NAME%'s cursed outfit magic effect can now only be removed by ${senderName} or when the outfit will be spread fully.`);
+                            state = this.stateModule.SpreadingOutfitState.Apply(spell, sender?.MemberNumber);
                         }
                         break;
                     case LSCGSpellEffect.polymorph:

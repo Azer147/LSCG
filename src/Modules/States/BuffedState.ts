@@ -65,7 +65,7 @@ export class BuffedState extends BaseState {
         return super.Activate(memberNumber, duration, emote);
     }
 
-    Recover(emote?: boolean | undefined): BaseState | undefined {
+    Recover(emote?: boolean, sender?: Character | null): BaseState | undefined {
         if (this.Active) {
             if (emote) SendAction("%NAME%'s abilities return to normal.");
             BuffedState.BUFF_SKILLS.forEach(skill => {

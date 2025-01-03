@@ -33,7 +33,7 @@ export abstract class ItemBundleBaseState extends BaseState {
 
     abstract Apply(spell: SpellDefinition, memberNumber?: number | undefined, duration?: number, emote?: boolean | undefined): BaseState;
 
-    Recover(emote?: boolean | undefined): BaseState {
+    Recover(emote?: boolean, sender?: Character | null): BaseState | undefined {
         super.Recover();
         if (!!this.StoredOutfit) {
             this.StripCharacter(true, null, []);

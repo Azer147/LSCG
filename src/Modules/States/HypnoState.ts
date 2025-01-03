@@ -66,7 +66,7 @@ export class HypnoState extends BaseState {
         return this;
     }
 
-    Recover(emote?: boolean) {
+    Recover(emote?: boolean, sender?: Character | null): BaseState | undefined {
         if (this.Active) {
             if (emote) SendAction("%NAME% blinks and returns to %POSSESSIVE% senses.")
             this.ResetEyes();

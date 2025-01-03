@@ -40,7 +40,7 @@ export class SleepState extends BaseState {
         return;
     }
 
-    Recover(emote?: boolean) {
+    Recover(emote?: boolean, sender?: Character | null): BaseState | undefined {
         if (this.Active) {
             if (emote)
                 SendAction("%NAME%'s eyelids flutter and start to open sleepily...");
