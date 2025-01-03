@@ -53,7 +53,7 @@ export class ResizedState extends BaseState {
         return super.Activate(memberNumber, duration, emote);
     }
 
-    Recover(emote?: boolean | undefined): BaseState | undefined {
+    Recover(emote?: boolean, sender?: Character | null): BaseState | undefined {
         if (emote && this.Active) SendAction(`%NAME%'s body returns to its normal size.`);
         return super.Recover(false);
     }

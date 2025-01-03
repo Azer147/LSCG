@@ -272,6 +272,7 @@ export class GuiMagic extends GuiSubscreen {
 
 	outfitEffects: LSCGSpellEffect[] = [
 		LSCGSpellEffect.outfit,
+		LSCGSpellEffect.spreading_outfit,
 		LSCGSpellEffect.polymorph
 	]
 
@@ -575,7 +576,12 @@ export class GuiMagic extends GuiSubscreen {
 					} else if (this.Spell.Effects.length < 2 && MouseIn(1410, this.getYPos(3) - 32, 64, 64)) {
 						this.Spell.Effects.splice(0);
 					} else if (this.outfitEffects.indexOf(this.Spell.Effects[0]) > -1 && MouseIn(1500, this.getYPos(3)-32, 200, 64)){
-						this.Spell.Effects[0] == LSCGSpellEffect.outfit ? this.ConfigureOutfitEffect() : this.ConfigurePolymorphEffect();
+						if (this.Spell.Effects[0] == LSCGSpellEffect.polymorph) {
+							this.ConfigurePolymorphEffect();
+						}
+						else {
+							this.ConfigureOutfitEffect();
+						}
 					} else if (MouseIn(780, this.getYPos(5) - 32, 600, 64)) {
 						let effects = this.UniqueEffects(1);
 						if (MouseX <= 1080) {
@@ -589,7 +595,12 @@ export class GuiMagic extends GuiSubscreen {
 					} else if (this.Spell.Effects.length < 3 && MouseIn(1410, this.getYPos(5) - 32, 64, 64)) {
 						this.Spell.Effects.splice(1)
 					} else if (this.outfitEffects.indexOf(this.Spell.Effects[1]) > -1 && MouseIn(1500, this.getYPos(5)-32, 200, 64)){
-						this.Spell.Effects[1] == LSCGSpellEffect.outfit ? this.ConfigureOutfitEffect() : this.ConfigurePolymorphEffect();
+						if (this.Spell.Effects[1] == LSCGSpellEffect.polymorph) {
+							this.ConfigurePolymorphEffect();
+						}
+						else {
+							this.ConfigureOutfitEffect();
+						}
 					}else if (MouseIn(780, this.getYPos(7) - 32, 600, 64)) {
 						let effects = this.UniqueEffects(2);
 						if (MouseX <= 1080) {
@@ -603,7 +614,12 @@ export class GuiMagic extends GuiSubscreen {
 					} else if (this.Spell.Effects.length < 4 && MouseIn(1410, this.getYPos(7) - 32, 64, 64)) {
 						this.Spell.Effects.splice(2)
 					} else if (this.outfitEffects.indexOf(this.Spell.Effects[2]) > -1 && MouseIn(1500, this.getYPos(7)-32, 200, 64)){
-						this.Spell.Effects[2] == LSCGSpellEffect.outfit ? this.ConfigureOutfitEffect() : this.ConfigurePolymorphEffect();
+						if (this.Spell.Effects[2] == LSCGSpellEffect.polymorph) {
+							this.ConfigurePolymorphEffect();
+						}
+						else {
+							this.ConfigureOutfitEffect();
+						}
 					}
 				}
 			}
@@ -745,6 +761,8 @@ export class GuiMagic extends GuiSubscreen {
 			// 	return "Shrinks the target to half their size."
 			case LSCGSpellEffect.outfit:
 				return "Magically change the target's clothing and equipment.";
+			case LSCGSpellEffect.spreading_outfit:
+				return "Magically change the target's clothing and equipment little by little.";
 			case LSCGSpellEffect.paired_arousal:
 				return "Pair two targets, such that when one feels arousal the other also does.";
 			case LSCGSpellEffect.orgasm_siphon:
