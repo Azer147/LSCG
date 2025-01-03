@@ -48,7 +48,7 @@ export abstract class PairedBaseState extends BaseState {
         }]);
     }
 
-    Recover(emote?: boolean | undefined): BaseState | undefined {
+    Recover(emote?: boolean, sender?: Character | null): BaseState | undefined {
         this.Pairings.forEach(pair => {
             sendLSCGCommandBeep(pair.PairedMember, "unpair", [{
                 name: "type",

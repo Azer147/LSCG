@@ -78,7 +78,7 @@ export abstract class BaseState {
         return this;
      }
 
-    Recover(emote?: boolean): BaseState | undefined {
+    Recover(emote?: boolean, sender?: Character | null): BaseState | undefined {
         if (emote) SendAction(`%NAME%'s ${this.Type} state wears off.`)
         this.config.active = false;
         this.config.recoveredAt = new Date().getTime();
