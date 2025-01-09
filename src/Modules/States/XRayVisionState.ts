@@ -89,7 +89,7 @@ export class XRayVisionState extends BaseState {
         return ret;
     }
 
-    Recover(emote?: boolean | undefined): BaseState | undefined {
+    Recover(emote?: boolean, sender?: Character | null): BaseState | undefined {
         let ret = super.Recover(emote);
         ChatRoomCharacter.forEach(C => {
             CharacterLoadCanvas(C);
