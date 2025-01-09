@@ -104,7 +104,7 @@ export class SpreadingOutfitState extends ItemBundleBaseState {
     }
 
     _spreqdingCheck: number = 0;
-    _spreqdingInterval: number = 45 * 1000; // 45s spreading interval
+    _spreqdingInterval: number = 30 * 1000; // 30s spreading interval
     Tick(now: number): void {
         if (this._spreqdingCheck == 0 || this._spreqdingCheck < now) {
             this._spreqdingCheck = now + this._spreqdingInterval;
@@ -138,6 +138,7 @@ export class SpreadingOutfitState extends ItemBundleBaseState {
                 if (!!outfitList && typeof outfitList == "object") {
                     this._spreqdingCheck = 0;
                     this.storeSpreadingOutfitData(outfitList, spell, memberNumber);
+                    this.StripCharacter(true, spell, outfitList);
                     // TODO: test if the worn item have the correct property (might be dangerous if sanitize ?)
                     super.Activate(memberNumber, duration, emote);
                 }
@@ -161,7 +162,8 @@ export class SpreadingOutfitState extends ItemBundleBaseState {
             if (!!newItem) {
                 if (!!item.Property)
                     newItem.Property = item.Property;
-                let itemName = (newItem?.Craft?.Name ?? newItem.Asset.Name);
+                //let itemName = (newItem?.Craft?.Name ?? newItem.Asset.Name);
+                let itemName = (newItem?.Craft?.Name ?? item.Name);
                 SendAction(`%NAME%'s cursed outfit is spreading, adding ${itemName}.`);
                 ChatRoomCharacterUpdate(Player);
             }
@@ -178,8 +180,7 @@ export class SpreadingOutfitState extends ItemBundleBaseState {
         while (i < items.length) {
             let item = items[i];
             let asset = AssetGet(Player.AssetFamily, item.Group, item.Name);
-            //let shouldSkipBind = (priority == "cloth" && asset && isBind(asset));
-            let shouldSkipBind = false;
+            let shouldSkipBind = (priority == "cloth" && asset && isBind(asset));
             let itemIsAllowed = this.DoChange(asset, spell);
             let isBlocked = asset && this.InventoryBlockedOrLimited(sender, {Asset: asset});
             let isRoomDisallowed = !InventoryChatRoomAllow(asset?.Category ?? []);
