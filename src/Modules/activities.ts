@@ -1353,6 +1353,74 @@ export class ActivityModule extends BaseModule {
             CustomImage: "Assets/Female3DCG/Activity/MassageFeet.png"
         });
 
+        // GrabMouthWithPussy
+        this.AddActivity({
+            Activity: <Activity>{
+                Name: "GrabMouthWithPussy",
+                MaxProgress: 75,
+                MaxProgressSelf: 30,
+                Prerequisite: ["ZoneAccessible", "HasVagina", "VulvaEmpty", "TargetCanUseTongue"]
+            },
+            Targets: [
+                {
+                    Name: "ItemMouth",
+                    SelfAllowed: false,
+                    TargetLabel: "Stuff with Pussy",
+                    TargetAction: "SourceCharacter shoves PronounPossessive pussy into TargetCharacter's mouth, forcing their mouth open."
+                }
+            ],
+            CustomPrereqs: [
+                {
+                    Name: "TargetCanPussyMouthGrab",
+                    Func: (acting, acted, group) => {
+                        return InventoryPrerequisiteMessage(acting, "NotChaste") === "" && !this.leashingModule.ContainsLeashing(acted.MemberNumber!, "mouth-with-pussy");
+                    }
+                }
+            ],
+            CustomAction: {
+                Func: (target, args, next) => {
+                    if (!!target)
+                        this.leashingModule.DoGrab(target, "mouth-with-pussy");
+                    return next(args);
+                }
+            },
+            CustomImage: "Assets/Female3DCG/Activity/MassageFeet.png"
+        });
+
+        // ReleasePussyGrabbedMouth
+        this.AddActivity({
+            Activity: <Activity>{
+                Name: "ReleasePussyGrabbedMouth",
+                MaxProgress: 20,
+                MaxProgressSelf: 20,
+                Prerequisite: ["ZoneAccessible", "HasVagina"]
+            },
+            Targets: [
+                {
+                    Name: "ItemMouth",
+                    SelfAllowed: false,
+                    TargetLabel: "Remove Pussy",
+                    TargetAction: "SourceCharacter removes PronounPossessive pussy from TargetCharacter's mouth."
+                }
+            ],
+            CustomPrereqs: [
+                {
+                    Name: "TargetMouthIsPussyGrabbed",
+                    Func: (acting, acted, group) => {
+                        return this.leashingModule.ContainsLeashing(acted.MemberNumber!, "mouth-with-pussy");
+                    }
+                }
+            ],
+            CustomAction: {
+                Func: (target, args, next) => {
+                    if (!!target)
+                        this.leashingModule.DoRelease(target, "mouth-with-pussy");
+                    return next(args);
+                }
+            },
+            CustomImage: "Assets/Female3DCG/Activity/MassageFeet.png"
+        });
+
         // Tug Crotch Rope
         this.AddActivity({
             Activity: <Activity>{

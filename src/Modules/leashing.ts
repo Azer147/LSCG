@@ -10,7 +10,7 @@ import { CollarModel } from "Settings/Models/collar";
 import { CollarModule } from "./collar";
 import { CommandListener, CoreModule } from "./core";
 
-export type GrabType = "hand"  | "ear" | "tongue" | "arm" | "neck" | "mouth" | "horn" | "mouth-with-foot" | "chomp" | "eyes" | "compulsion" | "tail" | "hair" | "nose" | "nipples"
+export type GrabType = "hand"  | "ear" | "tongue" | "arm" | "neck" | "mouth" | "horn" | "mouth-with-foot" | "mouth-with-pussy" | "chomp" | "eyes" | "compulsion" | "tail" | "hair" | "nose" | "nipples"
 
 export interface LeashDefinition {
     Type: GrabType;
@@ -53,6 +53,7 @@ export const LeashDefinitions: Map<GrabType, LeashDefinition> = new Map<GrabType
             if (!pairing.IsSource || pairing.PairedMember == Player.MemberNumber) CharacterSetFacialExpression(Player, "Eyes", (<any>pairing)['temp'] ?? null);
         }}],
     ["mouth-with-foot", <LeashDefinition>{Type: "mouth-with-foot", LabelTarget: "Mouth filled with %OPP_NAME%'s foot", LabelSource: "Filling %OPP_NAME%'s mouth with foot", Icon: "Icons/Management.png", Ephemeral: true, Gags: true}],
+    ["mouth-with-pussy", <LeashDefinition>{Type: "mouth-with-pussy", LabelTarget: "Mouth filled with %OPP_NAME%'s pussy", LabelSource: "Filling %OPP_NAME%'s mouth with pussy", Icon: "Icons/Management.png", Ephemeral: true, Gags: true}],
     ["neck", <LeashDefinition>{Type: "neck", LabelTarget: "Choked by %OPP_NAME%", LabelSource: "Choking %OPP_NAME%", Icon: ICONS.NECK,
         OnAdd: (pairing) => {
             if (!pairing.IsSource || pairing.PairedMember == Player.MemberNumber) getModule<CollarModule>("CollarModule")?.HandChoke(getCharacter(pairing.PairedMember))
@@ -240,6 +241,7 @@ export class LeashingModule extends BaseModule {
             }
 
             this.RemoveAllLeashingsOfType("mouth-with-foot");
+            this.RemoveAllLeashingsOfType("mouth-with-pussy");
 
             return next(args);
         }, ModuleCategory.Leashed);
@@ -471,6 +473,8 @@ export class LeashingModule extends BaseModule {
                 return !this.Pairings.some(p => p.Type == "chomp");
             case "mouth-with-foot":
                 return this.Pairings.filter(p => p.Type == "mouth-with-foot").length < 2;
+            case "mouth-with-pussy":
+                return this.Pairings.filter(p => p.Type == "mouth-with-pussy").length < 2;
             default:
                 return true;
         }
@@ -691,6 +695,9 @@ export class LeashingModule extends BaseModule {
     NotifyAboutEscapeCommand(grabber: Character, type: GrabType) {
         if (type == "mouth-with-foot") {
             LSCG_SendLocal(replace_template(`${CharacterNickname(grabber)} has filled your mouth with %OPP_POSSESSIVE% foot!`, grabber));
+        }
+        if (type == "mouth-with-pussy") {
+            LSCG_SendLocal(replace_template(`${CharacterNickname(grabber)} has filled your mouth with %OPP_POSSESSIVE% pussy!`, grabber));
         }
         else if (type == "chomp") {
             LSCG_SendLocal(`${CharacterNickname(grabber)} has chomped down hard on you!`);
