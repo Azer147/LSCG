@@ -1,6 +1,6 @@
 import { BaseModule } from "base";
 import { ModuleCategory } from "Settings/setting_definitions";
-import { GetItemNameAndDescriptionConcat, isPhraseInString, removeAllHooksByModule, SendAction } from "../utils";
+import { GetItemNameAndDescriptionConcat, isPhraseInString, removeAllHooksByModule, SendAction, sleep } from "../utils";
 import { BaseSettingsModel } from "Settings/Models/base";
 
 export const chaoticKeywords: string[] = [
@@ -453,6 +453,8 @@ export class ChaoticItemModule extends BaseModule {
 
         for (let item of filteredChaoticItems) {
 			this.triggerChaoticItem(item);
+            // Avoid too many server request
+            sleep(300);
         }
     }
 
