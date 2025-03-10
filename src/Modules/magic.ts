@@ -751,7 +751,7 @@ export class MagicModule extends BaseModule {
                         }
                         break;
                     case LSCGSpellEffect.spreading_outfit:
-                        if (!!spell.Outfit?.Code) {
+                        if (!!spell.SpreadingOutfit?.Code) {
                             this.stateModule.GaggedState.Active ? 
                                 SendAction("%NAME% trembles as a cursed clothes start to spread slowly around %INTENSIVE%.") : 
                                 SendAction("%NAME% squeaks as a cursed clothes start to spread slowly around %INTENSIVE%.");

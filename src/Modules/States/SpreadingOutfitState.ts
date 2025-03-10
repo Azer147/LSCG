@@ -5,6 +5,11 @@ import { OutfitOption, SpellDefinition } from "Settings/Models/magic";
 import { ItemBundleBaseState } from "./ItemBundleBaseState";
 
 export class SpreadingOutfitState extends ItemBundleBaseState {
+    static MAX_DELAY_TIME: number = 60 * 100; // 100h in minutes
+    static MAX_LOOP_INTERVAL: number = 60 * 24; // 24h in minutes
+    static MAX_LOOP_NUMBER: number = 20;
+
+    // Core Stored variable
     private storedSpellKey: string = "stored-spell";
     get StoredSpell(): SpellDefinition | undefined {
         let ext = this.config.extensions[this.storedSpellKey];
@@ -19,6 +24,30 @@ export class SpreadingOutfitState extends ItemBundleBaseState {
     private storedSenderNumberKey: string = "stored-sender-number";
     get StoredSenderNumber(): number | undefined {
         let ext = this.config.extensions[this.storedSenderNumberKey];
+        if (!ext) return undefined;
+        try {
+            return JSON.parse(LZString.decompressFromBase64(ext));
+        }
+        catch {
+            return undefined;
+        }
+    }
+
+    // Loop Stored variable
+    private storedNextActivationTimeKey: string = "stored-next-activation";
+    get StoredNextActivationTime(): number | undefined {
+        let ext = this.config.extensions[this.storedNextActivationTimeKey];
+        if (!ext) return undefined;
+        try {
+            return JSON.parse(LZString.decompressFromBase64(ext));
+        }
+        catch {
+            return undefined;
+        }
+    }
+    private storedCurrentLoopNumberKey: string = "stored-loop-number";
+    get StoredCurrentLoopNumber(): number | undefined {
+        let ext = this.config.extensions[this.storedCurrentLoopNumberKey];
         if (!ext) return undefined;
         try {
             return JSON.parse(LZString.decompressFromBase64(ext));
@@ -59,7 +88,6 @@ export class SpreadingOutfitState extends ItemBundleBaseState {
 
     constructor(state: StateModule) {
         super(state);
-        this.Restrictions.Wardrobe = "true";
     }
 
     DoChange(asset: Asset | null, spell: SpellDefinition | null): boolean {
@@ -69,7 +97,7 @@ export class SpreadingOutfitState extends ItemBundleBaseState {
             return SpreadingOutfitState.AssetIsAllowed(asset);
 
         let neckExclusions = Player.LSCG.MagicModule.allowOutfitToChangeNeckItems ? [] : ["ItemNeck", "ItemNeckAccessories", "ItemNeckRestraints"];
-        switch(spell.Outfit?.Option) {
+        switch(spell.SpreadingOutfit?.Option) {
             case OutfitOption.clothes_only:
                 return isCloth(asset);
             case OutfitOption.binds_only:
@@ -85,6 +113,29 @@ export class SpreadingOutfitState extends ItemBundleBaseState {
         this.config.extensions[this.storedOutfitKey] = LZString.compressToBase64(JSON.stringify(outfitListbundle));
         this.config.extensions[this.storedSpellKey] = LZString.compressToBase64(JSON.stringify(originalSpell));
         if (!!senderMemberNumber) this.config.extensions[this.storedSenderNumberKey] = LZString.compressToBase64(JSON.stringify(senderMemberNumber));
+        if (originalSpell.SpreadingOutfit && originalSpell.SpreadingOutfit.LoopActive) {
+            this.config.extensions[this.storedNextActivationTimeKey] = LZString.compressToBase64(JSON.stringify(1));
+            this.config.extensions[this.storedCurrentLoopNumberKey] = LZString.compressToBase64(JSON.stringify(0));
+        }
+        settingsSave();
+    }
+
+    clearSpreadingOutfitData() {
+        delete this.config.extensions[this.storedOutfitKey];
+        delete this.config.extensions[this.storedSpellKey];
+        delete this.config.extensions[this.storedSenderNumberKey];
+        delete this.config.extensions[this.storedNextActivationTimeKey];
+        delete this.config.extensions[this.storedCurrentLoopNumberKey];
+        settingsSave();
+    }
+
+    updateNextActivationTime(time: number) {
+        console.warn("updateNextActivationTime: time=", time);
+        this.config.extensions[this.storedNextActivationTimeKey] = LZString.compressToBase64(JSON.stringify(time));
+        settingsSave();
+    }
+    updateCurrentLoopNumber(num: number) {
+        this.config.extensions[this.storedCurrentLoopNumberKey] = LZString.compressToBase64(JSON.stringify(num));
         settingsSave();
     }
 
@@ -103,11 +154,30 @@ export class SpreadingOutfitState extends ItemBundleBaseState {
         }
     }
 
-    _spreqdingCheck: number = 0;
-    _spreqdingInterval: number = 30 * 1000; // 30s spreading interval
+    _spreadingActive: boolean = false;
+    _spreadingCheck: number = 0;
+    _spreadingInterval: number = 30 * 1000; // 30s spreading interval
     Tick(now: number): void {
-        if (this._spreqdingCheck == 0 || this._spreqdingCheck < now) {
-            this._spreqdingCheck = now + this._spreqdingInterval;
+        if (!this.Active) {
+            super.Tick(now);
+            return;
+        }
+
+        // Manage Delay and Loop options
+        console.log("Tick: debug: _spreadingActive=", this._spreadingActive, " StoredNextActivationTime=", this.StoredNextActivationTime, " now=", now);
+        if (!this._spreadingActive && this.StoredNextActivationTime && this.StoredNextActivationTime < now) {
+            console.warn("Tick: will start spreading StoredNextActivationTime=", this.StoredNextActivationTime, " now=", now);
+            this.startSpreading();
+        }
+
+        if (!this._spreadingActive && !this.StoredNextActivationTime) {
+            console.warn("Tick: no StoredNextActivationTime set, will recover!");
+            this.Recover();
+        }
+
+        // Trigger next item
+        if (this._spreadingActive && (this._spreadingCheck == 0 || this._spreadingCheck < now)) {
+            this._spreadingCheck = now + this._spreadingInterval;
             if (this.Active && this.StoredOutfit && this.StoredOutfit.length > 0 && this.StoredSpell) {
                 let itemList = this.StoredOutfit;
                 itemList = this.shuffleArray(itemList);
@@ -118,36 +188,96 @@ export class SpreadingOutfitState extends ItemBundleBaseState {
     }
 
     Recover(emote?: boolean | undefined, sender?: Character | null): BaseState {
+        if (!this.Active) {
+            return this;
+        }
         if (sender && sender.MemberNumber != this.StoredSenderNumber) {
             SendAction(`%NAME%'s cursed outfit cannot be removed by this character.`);
             return this;
         }
-        if (!!this.StoredOutfit) {
-            this.ClearStoredOutfit();
-        }
-        if (emote) SendAction(`%NAME%'s cursed outfit finished spreading and it's now drained of all its energy.`);
+        //if (!!this.StoredOutfit) {
+        //    this.ClearStoredOutfit();
+        //}
+        this._spreadingActive = false;
+        this.Restrictions.Wardrobe = "false";
+        this.clearSpreadingOutfitData();
+        //if (emote) SendAction(`%NAME%'s cursed outfit finished spreading and it's now drained of all its energy.`);
         super.Recover();
         return this;
     }
 
     Apply(spell: SpellDefinition, memberNumber?: number | undefined, duration?: number, emote?: boolean | undefined): BaseState {
         try{
-            let outfit = spell.Outfit;
+            let outfit = spell.SpreadingOutfit;
+            console.log("Apply SpreadingOutfit: spell=", spell);
             if (!!outfit) {
                 let outfitList = this.GetConfiguredItemBundles(outfit.Code, item => SpreadingOutfitState.ItemIsAllowed(item));
                 if (!!outfitList && typeof outfitList == "object") {
-                    this._spreqdingCheck = 0;
+                    this._spreadingCheck = 0;
+
+                    // Check loop number is valid
+                    if (spell.SpreadingOutfit && spell.SpreadingOutfit.LoopActive && outfit.LoopNumber > SpreadingOutfitState.MAX_LOOP_NUMBER) {
+                        spell.SpreadingOutfit.LoopNumber = SpreadingOutfitState.MAX_LOOP_NUMBER;
+                    }
+
                     this.storeSpreadingOutfitData(outfitList, spell, memberNumber);
-                    this.StripCharacter(true, spell, outfitList);
+                    //this.StripCharacter(true, spell, outfitList);
                     // TODO: test if the worn item have the correct property (might be dangerous if sanitize ?)
+
+                    // Delayed activation
+                    if (outfit.DelayActive && outfit.DelayTime > 0) {
+                        let delay = outfit.DelayTime;
+                        if (delay > SpreadingOutfitState.MAX_DELAY_TIME) delay = SpreadingOutfitState.MAX_DELAY_TIME;
+                        this.updateNextActivationTime(CommonTime() + (delay * 60 * 1000));
+                    }
+                    else {
+                        this.startSpreading();
+                    }
                     super.Activate(memberNumber, duration, emote);
                 }
             }
         }
         catch {
-            console.warn("error parsing outfitcode in SpreadingOutfitState: " + spell.Outfit?.Code);
+            console.warn("error parsing outfitcode in SpreadingOutfitState: " + spell.SpreadingOutfit?.Code);
         }
         return this;
+    }
+
+    startSpreading() {
+        let spell = this.StoredSpell ?? null;
+        console.warn("startSpreading: spell=", spell);
+
+        if (this.StoredSpell?.SpreadingOutfit?.LoopActive) {
+            // inc stored loop
+            this.updateCurrentLoopNumber((this.StoredCurrentLoopNumber ?? 0) + 1)
+            console.log("startSpreading: increasing CurrentLoopNumber=", this.StoredCurrentLoopNumber, " / ", this.StoredSpell.SpreadingOutfit.LoopNumber)
+        }
+
+        this.Restrictions.Wardrobe = "true";
+        this.StripCharacter(true, spell, this.StoredOutfit);
+        this._spreadingActive = true;
+        this._spreadingCheck = 0;
+
+    }
+
+    finishSpreading() {
+        this._spreadingActive = false;
+        this.Restrictions.Wardrobe = "false";
+
+        if (!this.StoredSpell || !this.StoredSpell.SpreadingOutfit
+            || !this.StoredSpell.SpreadingOutfit.LoopActive || this.StoredCurrentLoopNumber == undefined
+            || this.StoredCurrentLoopNumber > this.StoredSpell.SpreadingOutfit.LoopNumber) {
+            SendAction(`%NAME%'s cursed outfit finished spreading and it's now drained of all its energy.`);
+            this.Recover(true);
+            return;
+        }
+
+        // set next activation time for the next loop
+        let loopInterval = this.StoredSpell?.SpreadingOutfit?.LoopTime ?? 0;
+        if (loopInterval > SpreadingOutfitState.MAX_LOOP_INTERVAL) loopInterval = SpreadingOutfitState.MAX_LOOP_INTERVAL;
+        this.updateNextActivationTime(CommonTime() + (loopInterval * 60 * 1000));
+
+        SendAction(`%NAME%'s cursed outfit finished spreading but some of its energy remains and will be active again soon enough...`);
     }
 
     WearOneMoreItem(outfitListbundle: ServerItemBundle[], spell: SpellDefinition, memberNumber: number | undefined = undefined) {
@@ -169,13 +299,13 @@ export class SpreadingOutfitState extends ItemBundleBaseState {
             }
         }
         else {
-            this.Recover(true);
+            this.finishSpreading();
         }
     }
 
     selectNextItem(items: ItemBundle[], spell: SpellDefinition, sender: Character | null) {
         let i = 0;
-        // Do all clothes 1st (tmp disabled)
+        // Do all clothes 1st
         let priority: "cloth" | "bind" = "cloth";
         while (i < items.length) {
             let item = items[i];

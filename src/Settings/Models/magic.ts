@@ -57,6 +57,15 @@ export interface PolymorphConfig extends ItemBundleConfig {
     IncludeAllBody: boolean;    
 }
 
+export interface SpreadingOutfitConfig extends ItemBundleConfig {
+    Option: OutfitOption;
+    DelayActive: boolean;
+    LoopActive: boolean;
+    DelayTime: number;
+    LoopTime: number;
+    LoopNumber: number;
+}
+
 export interface SpellDefinition {
     Name: string;
     CastingPhrase?: string;
@@ -66,6 +75,7 @@ export interface SpellDefinition {
     AllowVoiceCast: boolean;
     Outfit?: OutfitConfig;
     Polymorph?: PolymorphConfig;
+    SpreadingOutfit?: SpreadingOutfitConfig;
 }
 
 export interface MagicSettingsModel extends MagicPublicSettingsModel {

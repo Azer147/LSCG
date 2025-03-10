@@ -1,10 +1,11 @@
 import { GuiSubscreen, Setting } from "./settingBase";
-import { KNOWN_SPELLS_LIMIT, LSCGSpellEffect, MagicSettingsModel, OutfitConfig, OutfitOption, PolymorphConfig, PolymorphOption, SpellDefinition } from "./Models/magic";
+import { KNOWN_SPELLS_LIMIT, LSCGSpellEffect, MagicSettingsModel, OutfitConfig, OutfitOption, PolymorphConfig, PolymorphOption, SpellDefinition, SpreadingOutfitConfig } from "./Models/magic";
 import { PairedBaseState } from "Modules/States/PairedBaseState";
 import { stringIsCompressedItemBundleArray } from "utils";
 import { PolymorphedState } from "Modules/States/PolymorphedState";
 import { RedressedState } from "Modules/States/RedressedState";
 import { drawTooltip } from "./settingUtils";
+import { SpreadingOutfitState } from "Modules/States/SpreadingOutfitState";
 
 export const pairedSpellEffects = [
 	LSCGSpellEffect.orgasm_siphon,
@@ -264,10 +265,18 @@ export class GuiMagic extends GuiSubscreen {
 
 	outfitFieldId: string = "magic_outfitPaste";
 	outfitDropId: string = "magic_outfitDrop";
+	outfitDelayId: string = "magic_outfitDelay";
+	outfitSpreadingDropId: string = "magic_spreadingOutfitDrop";
+	outfitLoopTimeId: string = "magic_spreadingOutfitLoopTime";
+	outfitLoopNumberId: string = "magic_spreadingOutfitLoopNumber";
 	Load(): void {
 		super.Load();
 		ElementCreateInput(this.outfitFieldId, "text", "", -1);
 		ElementCreateDropdown(this.outfitDropId, Object.values(OutfitOption), (evt) => this.OutfitConfigDropChanged(evt));
+		ElementCreateDropdown(this.outfitSpreadingDropId, Object.values(OutfitOption), (evt) => this.SpreadingOutfitConfigDropChanged(evt));
+		ElementCreateInput(this.outfitDelayId, "number", "0", 4);
+		ElementCreateInput(this.outfitLoopTimeId, "number", "0", 4);
+		ElementCreateInput(this.outfitLoopNumberId, "number", "0", 2);
 	}
 
 	outfitEffects: LSCGSpellEffect[] = [
@@ -363,12 +372,66 @@ export class GuiMagic extends GuiSubscreen {
 			// Confirm Button
 			DrawButton(1320, coords.y + 50, buttonWidth, 64, "Confirm", "White");
 			return;
+		} else if (!this.settings.locked && this._ConfigureSpreadingOutfit) {
+			this.multipageStructure.forEach((s, ix, arr) => {
+				s.forEach(setting => {
+					if (setting.type == "text" || setting.type == "number" || setting.type == "dropdown")
+						this.ElementHide(setting.id);
+				})
+			})
+			DrawRect(0, 0, 2000, 1000, "rgba(0,0,0,.5)");
+			let coords = {x: 500, y: 200, w: 1000, h: 500};
+			let buttonWidth = 150;
+			DrawRect(coords.x, coords.y, coords.w, coords.h, "White");
+			DrawEmptyRect(coords.x, coords.y, coords.w, coords.h, "Black", 5);
+			DrawEmptyRect(coords.x+5, coords.y+5, coords.w-10, coords.h-10, "Grey", 2);
+			MainCanvas.textAlign = "left";
+			DrawTextFit("Paste Outfit Code:", coords.x + 50, coords.y + 50, coords.w - 100 - buttonWidth, "Black", "Grey");
+			MainCanvas.textAlign = "center";
+			ElementPosition(this.outfitFieldId, coords.x + (coords.w/2) - (buttonWidth/2), coords.y + 120, coords.w - 100 - buttonWidth);
+			ElementPositionFix(this.outfitSpreadingDropId, 28, coords.x + 450, coords.y + 50 - 19, 340, 64);
+			DrawEmptyRect(coords.x + 445, coords.y + 50 - 30, 350, 68, "Black", 3);
+			DrawButton(1350, 300 - 32, 100, 64, "Confirm", "White");
+
+			// Checkboxes
+			MainCanvas.textAlign = "left";
+			this.DrawCheckboxAbsolute("Delay:",
+				"Delay the time when the outfit start spreading.",
+				this.Spell.SpreadingOutfit?.DelayActive ?? false, {
+					x: coords.x + 50,
+					y: coords.y + 200,
+					w: 200
+				}, false, false);
+			MainCanvas.textAlign = "center";
+			ElementPosition(this.outfitDelayId, coords.x + 450, coords.y + 200, 150);
+			DrawTextFit("minutes", coords.x + 600 - 20, coords.y + 200, 100, "Black", "Grey");
+
+			MainCanvas.textAlign = "left";
+			this.DrawCheckboxAbsolute("Loop:",
+			"Delay the time when the outfit start spreading.",
+			this.Spell.SpreadingOutfit?.LoopActive ?? false, {
+				x: coords.x + 50,
+				y: coords.y + 300,
+				w: 200
+				}, false, false);
+			MainCanvas.textAlign = "center";
+			DrawTextFit("every", coords.x + 400, coords.y + 300, 80, "Black", "Grey");
+			ElementPosition(this.outfitLoopTimeId, coords.x + 530, coords.y + 300, 150);
+			DrawTextFit("minutes, for", coords.x + 700 - 10, coords.y + 300, 150, "Black", "Grey");
+			ElementPosition(this.outfitLoopNumberId, coords.x + 830, coords.y + 300, 80);
+			DrawTextFit("times", coords.x + 930, coords.y + 300, 100, "Black", "Grey");
+
+			return;
 		}
 
 		super.Run();
 
 		this.ElementHide(this.outfitFieldId);
 		this.ElementHide(this.outfitDropId);
+		this.ElementHide(this.outfitSpreadingDropId);
+		this.ElementHide(this.outfitDelayId);
+		this.ElementHide(this.outfitLoopTimeId);
+		this.ElementHide(this.outfitLoopNumberId);
 
 		var prev = MainCanvas.textAlign;
 		if (!this.settings.enabled) {
@@ -429,6 +492,7 @@ export class GuiMagic extends GuiSubscreen {
 						DrawButton(1410 - 4, this.getYPos(3) - 32 - 4, 72, 72, "", "White", "", `Delete ${this.Spell.Name}`); // Delete Effect
 						DrawImageResize("Icons/Trash.png", 1410, this.getYPos(3) - 32, 64, 64);
 					}
+					MainCanvas.textAlign = "center";
 					if (this.outfitEffects.indexOf(this.Spell.Effects[0]) > -1) DrawButton(1500, this.getYPos(3) - 32, 200, 64, "Configure", "White");
 					MainCanvas.textAlign = "left";
 					DrawTextFit(GuiMagic.SpellEffectDescription(this.Spell.Effects[0]), 780, this.getYPos(4), 1000, "Black");
@@ -439,6 +503,7 @@ export class GuiMagic extends GuiSubscreen {
 							DrawButton(1410 - 4, this.getYPos(5) - 32 - 4, 72, 72, "", "White", "", `Delete ${this.Spell.Name}`); // Delete Effect
 							DrawImageResize("Icons/Trash.png", 1410, this.getYPos(5) - 32, 64, 64);
 						}
+						MainCanvas.textAlign = "center";
 						if (this.outfitEffects.indexOf(this.Spell.Effects[1]) > -1) DrawButton(1500, this.getYPos(5) - 32, 200, 64, "Configure", "White");
 						MainCanvas.textAlign = "left";
 						DrawTextFit(GuiMagic.SpellEffectDescription(this.Spell.Effects[1]), 780, this.getYPos(6), 1000, "Black");
@@ -450,6 +515,7 @@ export class GuiMagic extends GuiSubscreen {
 							DrawButton(1410 - 4, this.getYPos(7) - 32 - 4, 72, 72, "", "White", "", `Delete ${this.Spell.Name}`); // Delete Effect
 							DrawImageResize("Icons/Trash.png", 1410, this.getYPos(7) - 32, 64, 64);
 						}
+						MainCanvas.textAlign = "center";
 						if (this.outfitEffects.indexOf(this.Spell.Effects[2]) > -1) DrawButton(1500, this.getYPos(7) - 32, 200, 64, "Configure", "White");
 						MainCanvas.textAlign = "left";
 						DrawTextFit(GuiMagic.SpellEffectDescription(this.Spell.Effects[2]), 780, this.getYPos(8), 1000, "Black");
@@ -511,6 +577,33 @@ export class GuiMagic extends GuiSubscreen {
 				w: 200
 			}, () => this.Spell.Polymorph!.IncludeGenitals = !this.Spell.Polymorph?.IncludeGenitals);
 
+			return;
+		} else if (!this.settings.locked && this._ConfigureSpreadingOutfit) {
+			let coords = {x: 500, y: 200, w: 1000, h: 500};
+			//let buttonWidth = 150;
+			if (!MouseIn(coords.x, coords.y, coords.w, coords.h)) this._ConfigureSpreadingOutfit = false;
+			if (MouseIn(1350, 300 - 32, 100, 64)) this.ConfirmSpreadingOutfit();
+			if (!this.Spell.SpreadingOutfit)
+				this.Spell.SpreadingOutfit = <SpreadingOutfitConfig>{
+					Code: "",
+					Option: OutfitOption.both,
+					DelayActive: false,
+					LoopActive: false,
+					DelayTime: 0,
+					LoopTime: 0,
+					LoopNumber: 0,
+				}
+			this.ClickCheckboxAbsolute({
+				x: coords.x + 50,
+				y: coords.y + 200,
+				w: 200
+			}, () => this.Spell.SpreadingOutfit!.DelayActive = !this.Spell.SpreadingOutfit?.DelayActive);
+			this.ClickCheckboxAbsolute({
+				x: coords.x + 50,
+				y: coords.y + 300,
+				w: 200
+			}, () => this.Spell.SpreadingOutfit!.LoopActive = !this.Spell.SpreadingOutfit?.LoopActive);
+			console.log("Clicked _ConfigureSpreadingOutfit: this.spell=", this.Spell);
 			return;
 		}
 
@@ -579,8 +672,11 @@ export class GuiMagic extends GuiSubscreen {
 						if (this.Spell.Effects[0] == LSCGSpellEffect.polymorph) {
 							this.ConfigurePolymorphEffect();
 						}
-						else {
+						else if (this.Spell.Effects[0] == LSCGSpellEffect.outfit) {
 							this.ConfigureOutfitEffect();
+						}
+						else if (this.Spell.Effects[0] == LSCGSpellEffect.spreading_outfit) {
+							this.ConfigureSpreadingOutfitEffect();
 						}
 					} else if (MouseIn(780, this.getYPos(5) - 32, 600, 64)) {
 						let effects = this.UniqueEffects(1);
@@ -598,8 +694,11 @@ export class GuiMagic extends GuiSubscreen {
 						if (this.Spell.Effects[1] == LSCGSpellEffect.polymorph) {
 							this.ConfigurePolymorphEffect();
 						}
-						else {
+						else if (this.Spell.Effects[1] == LSCGSpellEffect.outfit) {
 							this.ConfigureOutfitEffect();
+						}
+						else if (this.Spell.Effects[1] == LSCGSpellEffect.spreading_outfit) {
+							this.ConfigureSpreadingOutfitEffect();
 						}
 					}else if (MouseIn(780, this.getYPos(7) - 32, 600, 64)) {
 						let effects = this.UniqueEffects(2);
@@ -617,8 +716,11 @@ export class GuiMagic extends GuiSubscreen {
 						if (this.Spell.Effects[2] == LSCGSpellEffect.polymorph) {
 							this.ConfigurePolymorphEffect();
 						}
-						else {
+						else if (this.Spell.Effects[2] == LSCGSpellEffect.outfit) {
 							this.ConfigureOutfitEffect();
+						}
+						else if (this.Spell.Effects[2] == LSCGSpellEffect.spreading_outfit) {
+							this.ConfigureSpreadingOutfitEffect();
 						}
 					}
 				}
@@ -629,6 +731,10 @@ export class GuiMagic extends GuiSubscreen {
 	Exit(): void {
 		ElementRemove(this.outfitFieldId);
 		ElementRemove(this.outfitDropId);
+		ElementRemove(this.outfitSpreadingDropId);
+		ElementRemove(this.outfitDelayId);
+		ElementRemove(this.outfitLoopTimeId);
+		ElementRemove(this.outfitLoopNumberId);
 		this.CleanPotionSettings();
 		super.Exit();
 	}
@@ -733,6 +839,51 @@ export class GuiMagic extends GuiSubscreen {
 		let polymorphCode = this.ParseCode(ElementValue(this.outfitFieldId), code => PolymorphedState.CleanItemCode(code));
 		this.Spell.Polymorph.Code = polymorphCode;
 		this.ElementSetValue(this.outfitFieldId, "");
+	}
+
+
+	_ConfigureSpreadingOutfit: boolean = false;
+	ConfigureSpreadingOutfitEffect() {
+		this.ElementSetValue(this.outfitFieldId, this.Spell.SpreadingOutfit?.Code ?? "");
+		this.ElementSetValue(this.outfitSpreadingDropId, this.Spell.SpreadingOutfit?.Option ?? OutfitOption.clothes_only);
+		this.ElementSetValue(this.outfitDelayId, this.Spell.SpreadingOutfit?.DelayTime ?? "0");
+		this.ElementSetValue(this.outfitLoopTimeId, this.Spell.SpreadingOutfit?.LoopTime ?? "0");
+		this.ElementSetValue(this.outfitLoopNumberId, this.Spell.SpreadingOutfit?.LoopNumber ?? "0");
+		this._ConfigureSpreadingOutfit = true;
+	}
+	ConfirmSpreadingOutfit() {
+		this._ConfigureSpreadingOutfit = false;
+		if (!this.Spell.SpreadingOutfit) this.Spell.SpreadingOutfit = <SpreadingOutfitConfig>{
+			Code: "",
+			Option: OutfitOption.both,
+			DelayActive: false,
+			LoopActive: false,
+			DelayTime: 0,
+			LoopTime: 0,
+			LoopNumber: 0,
+		}
+		let outfitCode = this.ParseCode(ElementValue(this.outfitFieldId), code => SpreadingOutfitState.CleanItemCode(code));
+		this.Spell.SpreadingOutfit.Code = outfitCode;
+		this.Spell.SpreadingOutfit.DelayTime = parseInt(ElementValue(this.outfitDelayId));
+		this.Spell.SpreadingOutfit.LoopTime = parseInt(ElementValue(this.outfitLoopTimeId));
+		this.Spell.SpreadingOutfit.LoopNumber = parseInt(ElementValue(this.outfitLoopNumberId));
+		this.ElementSetValue(this.outfitFieldId, "");
+		console.log("ConfirmSpreadingOutfit: this.spell=", this.Spell);
+	}
+	SpreadingOutfitConfigDropChanged(evt: any) {
+		if (!!this.Spell) {
+			if (!this.Spell.SpreadingOutfit)
+				this.Spell.SpreadingOutfit = <SpreadingOutfitConfig>{
+					Code: "",
+					Option: OutfitOption.both,
+					DelayActive: false,
+					LoopActive: false,
+					DelayTime: 0,
+					LoopTime: 0,
+					LoopNumber: 0,
+				}
+			this.Spell.SpreadingOutfit.Option = evt.target.value as OutfitOption;
+		}
 	}
 
 	static SpellEffectDescription(effect: LSCGSpellEffect): string {
