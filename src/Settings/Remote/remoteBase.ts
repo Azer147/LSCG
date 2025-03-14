@@ -37,6 +37,7 @@ export abstract class RemoteGuiSubscreen extends GuiSubscreen {
 	}
 
 	settingsSave() {
+		console.warn("remoteBase: settingsSave(): this.Character=", this.Character, " this.dirty=", this.dirty);
 		if (!this.Character || !this.dirty)
 			return;
 		sendLSCGMessage(<LSCGMessageModel>{
