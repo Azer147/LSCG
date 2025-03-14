@@ -11,7 +11,6 @@ export interface SpreadingOutfitModuleStats extends ModuleStats {
 export interface SpreadingOutfitSettingsModel extends SpreadingOutfitPublicSettingsModel {
     AllowedRemote: boolean;
     AllowSelfStop: boolean;
-    Internal: SpreadingOutfitModuleStats;
 }
 
 export interface SpreadingOutfitPublicSettingsModel extends BaseSettingsModel {
@@ -26,6 +25,7 @@ export interface SpreadingOutfitPublicSettingsModel extends BaseSettingsModel {
     RepeatInterval: number; // in min
     ItemInterval: number; // in sec
     RepeatNumber: number;
+    Internal: SpreadingOutfitModuleStats;
 }
 
 export interface SpreadingOutfitCodeConfig {
