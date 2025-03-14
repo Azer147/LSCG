@@ -94,9 +94,7 @@ export class SpreadingOutfitState extends BaseState {
         }
     }
 
-    //_spreadingActive: boolean = false;
     _spreadingCheck: number = 0; // define when the next item should trigger
-    //_spreadingInterval: number = 30 * 1000; // 30s spreading interval
     Tick(now: number): void {
         if (!this.Active) {
             super.Tick(now);
@@ -105,7 +103,7 @@ export class SpreadingOutfitState extends BaseState {
 
         // Trigger next item
         if (this._spreadingCheck == 0 || this._spreadingCheck < now) {
-            this._spreadingCheck = now + this.Settings.RepeatInterval;
+            this._spreadingCheck = now + this.Settings.ItemInterval * 1000;
 
             if (this.StoredOutfit && this.StoredOutfit.length > 0) {
                 let itemList = this.StoredOutfit;
