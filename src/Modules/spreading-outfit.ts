@@ -132,6 +132,12 @@ export class SpreadingOutfitModule extends BaseModule {
             return;
         }
 
+        if (this.nextActivationTriggerTimeout) {
+            clearTimeout(this.nextActivationTriggerTimeout);
+            this.nextActivationTriggerTimeout = undefined;
+            this.settings.Internal.NextActivationTime = 0;
+        }
+
         // inc loop
         this.settings.Internal.CurrentRepeatNumber += 1;
         console.log("startSpreadingState: increasing CurrentRepeatNumber=", this.settings.Internal.CurrentRepeatNumber, " / ", this.settings.RepeatNumber);

@@ -50,7 +50,7 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 			},<Setting>{
 				type: "label", // Status Spot
 				id: "spreading_status",
-				label: (this.settings.Active ? "Status: Active" : "Status: Inactive"),
+				label: this.getStatusString(),
 				description: "",
 				//hidden: this.settings.Locked
 			}, <Setting>{
@@ -134,6 +134,32 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 		// Load up module settings to ensure defaults..
 		super.Load();
 		ElementCreateInput(this.outfitFieldId, "text", "", -1);
+	}
+
+	getStatusString(): string {
+		let status_label_str = "Status: ";
+		if (this.settings.Active) {
+			status_label_str += "Active";
+
+			status_label_str += " - Repeat: " + this.settings.Internal.CurrentRepeatNumber;
+			status_label_str += "/" + this.settings.RepeatNumber;
+
+			if (this.settings.Internal.NextActivationTime > 0) {
+				var timeToNextActivation = this.settings.Internal.NextActivationTime - CommonTime();
+				var hours = Math.floor(timeToNextActivation / 3600000);
+				var minutes = Math.floor((timeToNextActivation % 3600000) / 60000);
+				var seconds = Math.floor(((timeToNextActivation % 360000) % 60000) / 1000);
+				status_label_str += " - Next activation in " +  hours + "h " + minutes + "m " + seconds + "s";
+			}
+			else {
+				status_label_str += " - Currently spreading";
+			}
+		}
+		else {
+			status_label_str += "Inactive";
+		}
+
+		return status_label_str;
 	}
 
 	_mainButtonWidth = 200;
