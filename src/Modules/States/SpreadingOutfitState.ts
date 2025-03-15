@@ -86,8 +86,9 @@ export class SpreadingOutfitState extends BaseState {
         const cosplayBlocked = Player.OnlineSharedSettings?.BlockBodyCosplay ?? true;
         let appearance = Player.Appearance;
         for (let i = appearance.length - 1; i >= 0; i--) {
+            const item = appearance[i];
             const asset = appearance[i].Asset;
-            if (this.DoChange(asset)) {
+            if (this.DoChange(asset) && !item.Property?.LockedBy) {
                 if (isCloth(asset) || newList.length == 0 || newList.some(x => x.Group == asset.Group.Name))
                     appearance.splice(i, 1);
             }
@@ -198,9 +199,11 @@ export class SpreadingOutfitState extends BaseState {
             let shouldSkipBind = (priority == "cloth" && asset && isBind(asset));
             let itemIsAllowed = this.DoChange(asset);
             let isBlocked = asset && InventoryIsPermissionBlocked(Player, asset.DynamicName(Player), asset.Group.Name);
+            let isLimited = asset && InventoryIsPermissionLimited(Player, asset.DynamicName(Player), asset.Group.Name);
             let isRoomDisallowed = !InventoryChatRoomAllow(asset?.Category ?? []);
-            let itemAlreadyWorn = InventoryIsItemInList(Player, item.Group, [item.Name]);
-            if (itemAlreadyWorn || shouldSkipBind || itemIsAllowed == false || isBlocked || isRoomDisallowed) {
+            //let itemAlreadyWorn = InventoryIsItemInList(Player, item.Group, [item.Name]);
+            let slotAlreadyBusy = asset && InventoryGet(Player, asset.Group.Name);
+            if (slotAlreadyBusy || shouldSkipBind || itemIsAllowed == false || isBlocked || isLimited || isRoomDisallowed) {
                 i++;
                 // Do all bind after clothes are done (disabled)
                 if (i == items.length && priority == "cloth") {
