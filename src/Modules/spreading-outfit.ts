@@ -96,31 +96,39 @@ export class SpreadingOutfitModule extends BaseModule {
         console.log("startSpreadingOutfitTriggered");
         // TODO: check all settings first ?
 
-        this.settings.Active = true;
         if (!this.nextActivationTriggerTimeout) {
             this.startSpreadingState();
         }
-        //settingsSave(true); // setting save should be already done in startSpreadingState()
     }
 
     stopSpreadingOutfitTriggered() {
         console.log("stopSpreadingOutfitTriggered");
         // Clean Internal var
-        if (this.nextActivationTriggerTimeout) {
-            clearTimeout(this.nextActivationTriggerTimeout);
-            this.nextActivationTriggerTimeout = undefined;
+        let wasActive = false;
+
+        if (this.settings.Active) {
+            this.settings.Active = false;
+            wasActive = true;
         }
-        this.settings.Active = false;
         this.settings.Internal.CurrentRepeatNumber = 0;
         this.settings.Internal.CurrentOutfitIndex = 0;
         this.settings.Internal.NextActivationTime = 0;
 
         if (this.stateModule.SpreadingOutfitState.Active) {
             this.stateModule.SpreadingOutfitState.Recover(false);
+            wasActive = true;
         }
 
-        SendAction(`%NAME%'s cursed outfit finished spreading and it's now drained of all its energy.`);
-        settingsSave(true);
+        if (this.nextActivationTriggerTimeout) {
+            clearTimeout(this.nextActivationTriggerTimeout);
+            this.nextActivationTriggerTimeout = undefined;
+            wasActive = true;
+        }
+
+        if (wasActive) {
+            SendAction(`%NAME%'s cursed outfit finished spreading and it's now drained of all its energy.`);
+            settingsSave(true);
+        }
     }
 
     startSpreadingState() {
@@ -138,7 +146,6 @@ export class SpreadingOutfitModule extends BaseModule {
             this.settings.Internal.NextActivationTime = 0;
         }
 
-        // inc loop
         this.settings.Internal.CurrentRepeatNumber += 1;
         console.log("startSpreadingState: increasing CurrentRepeatNumber=", this.settings.Internal.CurrentRepeatNumber, " / ", this.settings.RepeatNumber);
 
@@ -156,6 +163,7 @@ export class SpreadingOutfitModule extends BaseModule {
     }
 
     finishingSpreadingState() {
+        if (!this.settings.Active) return;
         console.warn("finishingSpreadingState");
         if (this.settings.Internal.CurrentRepeatNumber > this.settings.RepeatNumber) {
             this.stopSpreadingOutfitTriggered();
