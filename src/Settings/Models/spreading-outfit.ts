@@ -25,6 +25,8 @@ export interface SpreadingOutfitPublicSettingsModel extends BaseSettingsModel {
     RepeatInterval: number; // in min
     ItemInterval: number; // in sec
     RepeatNumber: number;
+    StartSpreadingTriggerWords: string;
+    ActivateCurseTriggerWords: string;
     Internal: SpreadingOutfitModuleStats;
 }
 

@@ -172,6 +172,8 @@ export class PublicSettingsModel implements IPublicSettingsModel {
         RepeatNumber: 5,
         ItemInterval: 30,
         Internal: {CurrentOutfitIndex: 0, CurrentRepeatNumber: 0, NextActivationTime: 0, ActivatedBy: 0},
+        StartSpreadingTriggerWords: "",
+        ActivateCurseTriggerWords: ""
     };
     ChaoticItemModule: BaseSettingsModel = <BaseSettingsModel>{enabled: false};
     SplatterModule: SplatterSettingsModel = <SplatterSettingsModel>{

@@ -51,7 +51,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 					disabled: !this.settings.enabled
 				},<Setting>{
 					type: "label",
-					label: "Allowed remote:",
+					label: "Allowed remote: (TODO)",
 					description: "Who can acces the remote settings (and also enable/disable it)",
 					setting: () => this.settings.Lockable ?? false,
 					setSetting: (val) => this.settings.Lockable = val,
@@ -63,6 +63,22 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 					setting: () => this.settings.AllowSelfStop ?? false,
 					setSetting: (val) => this.settings.AllowSelfStop = val,
 					disabled: !this.settings.enabled
+				},<Setting>{
+					type: "text",
+					id: "spreading_start_spread_trigger",
+					label: "Start spreading trigger word:",
+					description: "Custom list of words and/or phrases, separated by a comma, that can start the spreading outfit process (only if already active).",
+					disabled: !this.settings.enabled,
+					setting: () => this.settings.StartSpreadingTriggerWords ?? "",
+					setSetting: (val) => this.settings.StartSpreadingTriggerWords = val
+				},<Setting>{
+					type: "text",
+					id: "spreading_activate_trigger",
+					label: "Activate trigger word:",
+					description: "Custom list of words and/or phrases, separated by a comma, that can activate the spreading outfit (including repeat options if set).",
+					disabled: !this.settings.enabled,
+					setting: () => this.settings.ActivateCurseTriggerWords ?? "",
+					setSetting: (val) => this.settings.ActivateCurseTriggerWords = val
 				}
 			], [
 				<Setting>{
@@ -102,7 +118,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 					type: "number",
 					id: "spreading_item_interval",
 					label: "Item Interval (sec):",
-					description: "Interval between each item from the outfit is applied when the spreading start",
+					description: "Interval between each item from the outfit is applied when the spreading starts",
 					disabled: !this.settings.enabled || this.settings.Active,
 					setting: () => (this.settings.ItemInterval ?? 10),
 					setSetting: (val) => {
@@ -112,7 +128,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 				}, <Setting>{
 					type: "checkbox",
 					label: "Outfit1:",
-					description: "Use this outfit (Outfit code need to be set first)",
+					description: "Use this outfit (Outfit code needs to be set first)",
 					setting: () => this.settings.Outfit1.Enabled ?? false,
 					setSetting: (val) => {
 						this.settings.Outfit1.Enabled = (this.settings.Outfit1.Code != "" && val);
@@ -122,7 +138,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 				}, <Setting>{
 					type: "checkbox",
 					label: "Outfit2:",
-					description: "Use this outfit (Outfit code need to be set first)",
+					description: "Use this outfit (Outfit code needs to be set first)",
 					setting: () => this.settings.Outfit2.Enabled ?? false,
 					setSetting: (val) => {
 						this.settings.Outfit2.Enabled = (this.settings.Outfit2.Code != "" && val);
@@ -132,7 +148,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 				}, <Setting>{
 					type: "checkbox",
 					label: "Outfit3:",
-					description: "Use this outfit (Outfit code need to be set first)",
+					description: "Use this outfit (Outfit code needs to be set first)",
 					setting: () => this.settings.Outfit3.Enabled ?? false,
 					setSetting: (val) => {
 						this.settings.Outfit3.Enabled = (this.settings.Outfit3.Code != "" && val);

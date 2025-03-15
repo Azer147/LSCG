@@ -1,7 +1,7 @@
 import { BaseModule } from "base";
 import { getModule } from "modules";
 import { ModuleCategory, Subscreen } from "Settings/setting_definitions";
-import { OnActivity, SendAction, getCharacter, getRandomInt, hookFunction, settingsSave, getCharacterByNicknameOrMemberNumber } from "../utils";
+import { OnActivity, SendAction, getCharacter, getRandomInt, OnChat, settingsSave, removeAllHooksByModule, isPhraseInString, GetDelimitedList } from "../utils";
 import { ActivityModule, ActivityTarget } from "./activities";
 //import { KNOWN_SPELLS_LIMIT, LSCGSpellEffect, SpreadingOutfitSettingsModel, OutfitConfig, OutfitOption, SpellDefinition } from "Settings/Models/magic";
 import { SpreadingOutfitSettingsModel, SpreadingOutfitCodeConfig } from "Settings/Models/spreading-outfit";
@@ -35,6 +35,8 @@ export class SpreadingOutfitModule extends BaseModule {
             RepeatNumber: 5,
             RepeatInterval: 10,
             ItemInterval: 30,
+            StartSpreadingTriggerWords: "",
+            ActivateCurseTriggerWords: ""
         };
     }
 
@@ -56,6 +58,20 @@ export class SpreadingOutfitModule extends BaseModule {
         if (this.settings.Active && !this.stateModule.SpreadingOutfitState.Active) {
             this.setupNextActivationTimeout();
         }
+
+        OnChat(1, ModuleCategory.SpreadingOutfit, (data, sender, msg, metadata) => {
+            if (!this.Enabled || !this.settings.enabled)
+                return;
+
+            if (this.settings.Active && this.isMsgHaveTrigger(msg, this.settings.StartSpreadingTriggerWords)) {
+                console.log("StartSpreadingTriggerWords [", this.settings.StartSpreadingTriggerWords, "] found in msg=", msg);
+                this.startSpreadingState();
+            }
+            else if (this.isMsgHaveTrigger(msg, this.settings.ActivateCurseTriggerWords)) {
+                console.log("ActivateCurseTriggerWords [", this.settings.ActivateCurseTriggerWords, "] found in msg=", msg);
+                this.startSpreadingOutfitTriggered();
+            }
+        });
     }
 
     run(): void {
@@ -63,11 +79,24 @@ export class SpreadingOutfitModule extends BaseModule {
     }
 
     unload(): void {
-        //removeAllHooksByModule(ModuleCategory.SpreadingOutfit);
         if (this.nextActivationTriggerTimeout) {
             clearTimeout(this.nextActivationTriggerTimeout);
             this.nextActivationTriggerTimeout = undefined;
         }
+        removeAllHooksByModule(ModuleCategory.SpreadingOutfit);
+    }
+
+    isMsgHaveTrigger(msg: string, triggers: string) {
+        // Skip on OOC
+        if (msg.startsWith("(") || !triggers)
+            return false;
+
+        var triggerWords = GetDelimitedList(triggers);
+
+        let matched = triggerWords.some(trigger => {
+            return isPhraseInString(msg, trigger);
+        })
+        return matched;
     }
 
     setupNextActivationTimeout() {
@@ -96,6 +125,7 @@ export class SpreadingOutfitModule extends BaseModule {
         console.log("startSpreadingOutfitTriggered");
         // TODO: check all settings first ?
 
+        this.settings.Active = true;
         if (!this.nextActivationTriggerTimeout) {
             this.startSpreadingState();
         }
