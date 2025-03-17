@@ -9,12 +9,12 @@ export interface SpreadingOutfitModuleStats extends ModuleStats {
 }
 
 export interface SpreadingOutfitSettingsModel extends SpreadingOutfitPublicSettingsModel {
-    AllowedRemote: boolean;
     AllowSelfStop: boolean;
 }
 
 export interface SpreadingOutfitPublicSettingsModel extends BaseSettingsModel {
     Active: boolean;
+    AllowedRemote: "Public" | "Friend" | "Whitelist" | "Lover" | "Owner" | "Self";
     Locked: boolean;
     Lockable: boolean;
     Outfit1: SpreadingOutfitCodeConfig;

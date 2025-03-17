@@ -69,7 +69,7 @@ export class MainMenu extends GuiSubscreen {
 			MainCanvas.textAlign = "center";
 			let i = 0;
 			for (const screen of this.subscreens) {
-				const PX = Math.floor(i / 6);
+				let PX = Math.floor(i / 6);
 				const PY = i % 6;
 
 				const isDisabled = !screen.enabled;

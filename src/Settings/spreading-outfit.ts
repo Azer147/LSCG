@@ -51,10 +51,8 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 					disabled: !this.settings.enabled
 				},<Setting>{
 					type: "label",
-					label: "Allowed remote: (TODO)",
-					description: "Who can acces the remote settings (and also enable/disable it)",
-					setting: () => this.settings.Lockable ?? false,
-					setSetting: (val) => this.settings.Lockable = val,
+					label: "Allowed remote:",
+					description: "Who can acces the remote settings (based on: Public < Friend < Whitelist < Lover < Owner)",
 					disabled: !this.settings.enabled
 				},<Setting>{
 					type: "checkbox",
@@ -101,14 +99,14 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 					setSetting: (val) => {
 						this.settings.RepeatNumber = Math.min(20, Math.max(0, val)) // 20 times max
 					},
-					disabled: !this.settings.enabled || this.settings.Active,
+					disabled: !this.settings.enabled,
 					hidden: (this.settings.Active && !this.settings.AllowSelfStop)
 				},<Setting>{
 					type: "number",
 					id: "spreading_repeat_interval",
 					label: "Repeat Interval (min):",
 					description: "Repeat interval",
-					disabled: !this.settings.enabled || this.settings.Active,
+					disabled: !this.settings.enabled,
 					setting: () => (this.settings.RepeatInterval ?? 10),
 					setSetting: (val) => {
 						this.settings.RepeatInterval = Math.min(60 * 24, Math.max(5, val)) // 5min mini / 24h max
@@ -119,7 +117,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 					id: "spreading_item_interval",
 					label: "Item Interval (sec):",
 					description: "Interval between each item from the outfit is applied when the spreading starts",
-					disabled: !this.settings.enabled || this.settings.Active,
+					disabled: !this.settings.enabled,
 					setting: () => (this.settings.ItemInterval ?? 10),
 					setSetting: (val) => {
 						this.settings.ItemInterval = Math.min(60 * 5, Math.max(5, val)) // 5sec mini / 5min max
@@ -133,7 +131,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 					setSetting: (val) => {
 						this.settings.Outfit1.Enabled = (this.settings.Outfit1.Code != "" && val);
 					},
-					disabled: !this.settings.enabled || this.settings.Active || this.settings.Outfit1.Code == "",
+					disabled: !this.settings.enabled || this.settings.Outfit1.Code == "",
 					hidden: (this.settings.Active && !this.settings.AllowSelfStop)
 				}, <Setting>{
 					type: "checkbox",
@@ -143,7 +141,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 					setSetting: (val) => {
 						this.settings.Outfit2.Enabled = (this.settings.Outfit2.Code != "" && val);
 					},
-					disabled: !this.settings.enabled || this.settings.Active || this.settings.Outfit2.Code == "",
+					disabled: !this.settings.enabled || this.settings.Outfit2.Code == "",
 					hidden: (this.settings.Active && !this.settings.AllowSelfStop)
 				}, <Setting>{
 					type: "checkbox",
@@ -153,7 +151,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 					setSetting: (val) => {
 						this.settings.Outfit3.Enabled = (this.settings.Outfit3.Code != "" && val);
 					},
-					disabled: !this.settings.enabled || this.settings.Active || this.settings.Outfit3.Code == "",
+					disabled: !this.settings.enabled || this.settings.Outfit3.Code == "",
 				}
 		]]
 	}
@@ -191,17 +189,57 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 		return status_label_str;
 	}
 
+	getAllowedRemoteToString(): string {
+		switch (this.settings.AllowedRemote) {
+			case "Public":
+				return "Everyone (except blacklisted)";
+			case "Friend":
+				return "Friends and above";
+			case "Whitelist":
+				return "Whitelisted and above";
+			case "Lover":
+				return "Lovers and above";
+			case "Owner":
+				return "Owners only";
+			default:
+				return "Self";
+		}
+	}
+
+	clickAllowRemote() {
+		switch (this.settings.AllowedRemote) {
+			case "Public":
+				this.settings.AllowedRemote = "Friend";
+				break;
+			case "Friend":
+				this.settings.AllowedRemote = "Whitelist";
+				break;
+			case "Whitelist":
+				this.settings.AllowedRemote = "Lover";
+				break;
+			case "Lover":
+				this.settings.AllowedRemote = "Owner";
+				break;
+			case "Owner":
+				this.settings.AllowedRemote = "Self";
+				break;
+			default:
+				this.settings.AllowedRemote = "Public";
+				break;
+		}
+	}
+
 	updateDisabledButton() {
 		this._startButtonDisabled = (!this.settings.enabled || this.settings.Active);
 		this._stopButtonDisabled = (!this.settings.enabled || !this.settings.Active || !this.settings.AllowSelfStop);
-		this._configButtonDisabled = (this.settings.enabled && this.settings.Active);
+		this._configButtonDisabled = (this.settings.enabled);
 	}
 
 	_mainButtonWidth = 200;
 	_mainButtonHeight = 64;
 	_startButtonDisabled = (!this.settings.enabled || this.settings.Active);
 	_stopButtonDisabled = (!this.settings.enabled || !this.settings.Active || !this.settings.AllowSelfStop);
-	_configButtonDisabled = (this.settings.enabled && this.settings.Active);
+	_configButtonDisabled = (this.settings.enabled);
 	Run() {
 		if (this._ConfigureOutfit > 0) {
 			this.structure.forEach(setting => {
@@ -229,11 +267,14 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 
 		this.ElementHide(this.outfitFieldId);
 
-		//MainCanvas.textAlign = "left";
-		//DrawTextFit(GuiMagic.SpellEffectDescription(this.Spell.Effects[1]), 780, this.getYPos(6), 1000, "Black");
-		//MainCanvas.textAlign = "center";
-		if (PreferencePageCurrent == 2) {
-			MainCanvas.textAlign = "center";
+		MainCanvas.textAlign = "center";
+		if (PreferencePageCurrent == 1) {
+			// Allowed remote button
+			let allowRemoteButtonLabel = this.getAllowedRemoteToString();
+			DrawButton(780, this.getYPos(2) - 32, 400, this._mainButtonHeight, allowRemoteButtonLabel, (this._startButtonDisabled ? "Grey" : "White"));
+		}
+		else if (PreferencePageCurrent == 2) {
+			//MainCanvas.textAlign = "center";
 
 			this.updateDisabledButton();
 			// Draw Start button
@@ -272,18 +313,22 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 			}
 		}
 
-		if (PreferencePageCurrent == 2) {
+		if (PreferencePageCurrent == 1) {
+			// Allowed remote button
+			if (MouseIn(780, this.getYPos(2)-32, 400, this._mainButtonHeight)){
+				this.clickAllowRemote();
+			}
+		}
+		else if (PreferencePageCurrent == 2) {
 			// Start button click
 			if (!this._startButtonDisabled) {
 				if (MouseIn(200, this.getYPos(0)-32, this._mainButtonWidth, this._mainButtonHeight)){
-					// TODO
 					this.settings.Active = true;
 				}
 			}
 			// Stop button click
 			if (!this._stopButtonDisabled) {
 				if (MouseIn(300 + this._mainButtonWidth, this.getYPos(0)-32, this._mainButtonWidth, this._mainButtonHeight)){
-					// TODO
 					this.settings.Active = false;
 				}
 			}
