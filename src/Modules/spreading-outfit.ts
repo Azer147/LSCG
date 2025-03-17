@@ -167,6 +167,8 @@ export class SpreadingOutfitModule extends BaseModule {
         console.warn("startSpreadingState: settings=", this.settings);
         if (!this.checkSettingsValidForStart()) {
             console.error("startSpreadingState: settings are not valid settings=", this.settings);
+            this.settings.Active = false;
+            settingsSave(true);
             return;
         }
 
@@ -188,6 +190,12 @@ export class SpreadingOutfitModule extends BaseModule {
 
         //state = this.stateModule.SpreadingOutfitState.Apply(spell, sender?.MemberNumber);
         var state: BaseState | undefined = this.stateModule.SpreadingOutfitState.Activate();
+        if (!state) {
+            console.error("startSpreadingState: outfit", this.settings.Internal.CurrentOutfitIndex," is not valid! settings=", this.settings);
+            this.settings.Active = false;
+            settingsSave(true);
+            return;
+        }
 
         settingsSave(true);
     }

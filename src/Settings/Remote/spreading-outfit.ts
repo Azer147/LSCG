@@ -168,7 +168,7 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 	updateDisabledButton() {
 		this._startButtonDisabled = (!this.settings.enabled || this.settings.Active);
 		this._stopButtonDisabled = (!this.settings.enabled || !this.settings.Active);
-		this._configButtonDisabled = (this.settings.enabled);
+		this._configButtonDisabled = (!this.settings.enabled);
 	}
 
 	outfitFieldId: string = "magic_outfitPaste";
@@ -208,7 +208,7 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 	_mainButtonHeight = 64;
 	_startButtonDisabled = (!this.settings.enabled || this.settings.Active);
 	_stopButtonDisabled = (!this.settings.enabled || !this.settings.Active);
-	_configButtonDisabled = (this.settings.enabled);
+	_configButtonDisabled = (!this.settings.enabled);
 	Run() {
 		if (this._ConfigureOutfit > 0) {
 			this.structure.forEach(setting => {

@@ -60,7 +60,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 					description: "Allow to stop the spreading outfit by yourself",
 					setting: () => this.settings.AllowSelfStop ?? false,
 					setSetting: (val) => this.settings.AllowSelfStop = val,
-					disabled: !this.settings.enabled
+					disabled: !this.settings.enabled || (this.settings.Active && !this.settings.AllowSelfStop)
 				},<Setting>{
 					type: "text",
 					id: "spreading_start_spread_trigger",
@@ -152,6 +152,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 						this.settings.Outfit3.Enabled = (this.settings.Outfit3.Code != "" && val);
 					},
 					disabled: !this.settings.enabled || this.settings.Outfit3.Code == "",
+					hidden: (this.settings.Active && !this.settings.AllowSelfStop)
 				}
 		]]
 	}
@@ -232,14 +233,14 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 	updateDisabledButton() {
 		this._startButtonDisabled = (!this.settings.enabled || this.settings.Active);
 		this._stopButtonDisabled = (!this.settings.enabled || !this.settings.Active || !this.settings.AllowSelfStop);
-		this._configButtonDisabled = (this.settings.enabled);
+		this._configButtonDisabled = (!this.settings.enabled);
 	}
 
 	_mainButtonWidth = 200;
 	_mainButtonHeight = 64;
 	_startButtonDisabled = (!this.settings.enabled || this.settings.Active);
 	_stopButtonDisabled = (!this.settings.enabled || !this.settings.Active || !this.settings.AllowSelfStop);
-	_configButtonDisabled = (this.settings.enabled);
+	_configButtonDisabled = (!this.settings.enabled);
 	Run() {
 		if (this._ConfigureOutfit > 0) {
 			this.structure.forEach(setting => {

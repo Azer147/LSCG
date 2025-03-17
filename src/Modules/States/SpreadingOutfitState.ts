@@ -133,7 +133,7 @@ export class SpreadingOutfitState extends BaseState {
             if (!this.checkSettingsValid()) return undefined;
 
             let outfitList = this.GetConfiguredItemBundles(this.getCurrentOutfitFromSettings().Code, item => SpreadingOutfitState.ItemIsAllowed(item));
-            if (!!outfitList && typeof outfitList == "object") {
+            if (!!outfitList && typeof outfitList == "object" && outfitList.length > 0) {
                 this.SetStoredOutfit(outfitList);
                 this._spreadingCheck = 0;
                 this.Restrictions.Wardrobe = "true";
