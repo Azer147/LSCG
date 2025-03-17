@@ -163,6 +163,7 @@ export class PublicSettingsModel implements IPublicSettingsModel {
         Active: false,
         Locked: false,
         Lockable: false,
+        AllowedRemote: "Self",
         Outfit1: {Code: "", Enabled: false},
         Outfit2: {Code: "", Enabled: false},
         Outfit3: {Code: "", Enabled: false},

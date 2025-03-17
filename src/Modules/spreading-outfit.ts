@@ -25,7 +25,7 @@ export class SpreadingOutfitModule extends BaseModule {
             Locked: false,
             Lockable: false,
             Internal: {CurrentOutfitIndex: 0, CurrentRepeatNumber: 0, NextActivationTime: 0, ActivatedBy: 0},
-            AllowedRemote: false, // TODO
+            AllowedRemote: "Self",
             AllowSelfStop: false,
             Outfit1: {Code: "", Enabled: false},
             Outfit2: {Code: "", Enabled: false},

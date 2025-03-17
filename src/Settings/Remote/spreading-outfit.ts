@@ -27,17 +27,16 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 
 		if (!this.settings.enabled)
 			return "Section is Disabled";
-		if (!memberIdIsAllowed)
-			return replace_template("You do not have access to %OPP_POSSESSIVE% mind...", this.Character);
+		if (!this.checkRemoteAccessIsAllowed())
+			return "You do not have the permission to access";
 		else
 			return "Section is Unavailable";
 	}
 
 	get enabled(): boolean {
-		var memberIdIsAllowed = ServerChatRoomGetAllowItem(Player, this.Character);
+		if (!this.settings.enabled) return false;
 
-		// TODO: check remote access allowed
-		return this.settings.enabled;
+		return this.checkRemoteAccessIsAllowed();
 	}
 
 	get multipageStructure(): Setting[][] {
@@ -71,13 +70,13 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 				setSetting: (val) => {
 					this.settings.RepeatNumber = Math.min(20, Math.max(0, val)) // 20 times max
 				},
-				disabled: !this.settings.enabled || this.settings.Active,
+				disabled: !this.settings.enabled,
 			},<Setting>{
 				type: "number",
 				id: "spreading_repeat_interval",
 				label: "Repeat Interval:",
 				description: "Repeat interval",
-				disabled: !this.settings.enabled || this.settings.Active,
+				disabled: !this.settings.enabled,
 				setting: () => (this.settings.RepeatInterval ?? 10),
 				setSetting: (val) => {
 					this.settings.RepeatInterval = Math.min(60 * 24, Math.max(5, val)) // 5min mini / 24h max
@@ -87,7 +86,7 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 				id: "spreading_item_interval",
 				label: "Item Interval (sec):",
 				description: "Interval between each item from the outfit is applied when the spreading starts",
-				disabled: !this.settings.enabled || this.settings.Active,
+				disabled: !this.settings.enabled,
 				setting: () => (this.settings.ItemInterval ?? 10),
 				setSetting: (val) => {
 					this.settings.ItemInterval = Math.min(60 * 5, Math.max(5, val)) // 5sec mini / 5min max
@@ -100,7 +99,7 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 				setSetting: (val) => {
 					this.settings.Outfit1.Enabled = (this.settings.Outfit1.Code != "" && val);
 				},
-				disabled: !this.settings.enabled || this.settings.Active || this.settings.Outfit1.Code == "",
+				disabled: !this.settings.enabled || this.settings.Outfit1.Code == "",
 			}, <Setting>{
 				type: "checkbox",
 				label: "Outfit2:",
@@ -109,7 +108,7 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 				setSetting: (val) => {
 					this.settings.Outfit2.Enabled = (this.settings.Outfit2.Code != "" && val);
 				},
-				disabled: !this.settings.enabled || this.settings.Active || this.settings.Outfit2.Code == "",
+				disabled: !this.settings.enabled || this.settings.Outfit2.Code == "",
 			}, <Setting>{
 				type: "checkbox",
 				label: "Outfit3:",
@@ -118,7 +117,7 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 				setSetting: (val) => {
 					this.settings.Outfit3.Enabled = (this.settings.Outfit3.Code != "" && val);
 				},
-				disabled: !this.settings.enabled || this.settings.Active || this.settings.Outfit3.Code == "",
+				disabled: !this.settings.enabled || this.settings.Outfit3.Code == "",
 			},<Setting>{
 				type: "text",
 				id: "spreading_start_spread_trigger",
@@ -139,10 +138,37 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 		]]
 	}
 
+	checkRemoteAccessIsAllowed() {
+		if (this.settings.AllowedRemote == "Self") {
+			return false;
+		}
+		if (this.settings.AllowedRemote == "Public" && Player.MemberNumber) {
+			// Public except blacklist
+			return !this.Character.BlackList.includes(Player.MemberNumber);
+		}
+		if (this.settings.AllowedRemote != "Whitelist" && this.settings.AllowedRemote != "Lover" && this.settings.AllowedRemote != "Owner") {
+			// Friend and below
+			if (Player.FriendList && this.Character.MemberNumber && Player.FriendList.includes(this.Character.MemberNumber)) {
+				return true;
+			}
+		}
+		if (this.settings.AllowedRemote != "Lover" && this.settings.AllowedRemote != "Owner") {
+			// Whitelisted and below
+			if (Player.MemberNumber && this.Character.WhiteList.includes(Player.MemberNumber)) {
+				return true;
+			}
+		}
+		if (this.settings.AllowedRemote != "Owner" && this.Character.IsLoverOfPlayer()) {
+			// Lover and below
+			return true;
+		}
+		return this.Character.IsOwnedByPlayer();
+	}
+
 	updateDisabledButton() {
 		this._startButtonDisabled = (!this.settings.enabled || this.settings.Active);
 		this._stopButtonDisabled = (!this.settings.enabled || !this.settings.Active);
-		this._configButtonDisabled = (this.settings.enabled && this.settings.Active);
+		this._configButtonDisabled = (this.settings.enabled);
 	}
 
 	outfitFieldId: string = "magic_outfitPaste";
@@ -182,7 +208,7 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 	_mainButtonHeight = 64;
 	_startButtonDisabled = (!this.settings.enabled || this.settings.Active);
 	_stopButtonDisabled = (!this.settings.enabled || !this.settings.Active);
-	_configButtonDisabled = (this.settings.enabled && this.settings.Active);
+	_configButtonDisabled = (this.settings.enabled);
 	Run() {
 		if (this._ConfigureOutfit > 0) {
 			this.structure.forEach(setting => {
