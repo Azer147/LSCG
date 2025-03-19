@@ -105,7 +105,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 					type: "number",
 					id: "spreading_repeat_interval",
 					label: "Repeat Interval (min):",
-					description: "Repeat interval",
+					description: "Interval between spreading cycles",
 					disabled: !this.settings.enabled,
 					setting: () => (this.settings.RepeatInterval ?? 10),
 					setSetting: (val) => {
