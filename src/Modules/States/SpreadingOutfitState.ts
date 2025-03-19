@@ -174,7 +174,7 @@ export class SpreadingOutfitState extends BaseState {
         if (index >= 0) {
             let item = outfitListbundle[index];
 
-            let newItem = InventoryWear(Player, item.Name, item.Group, item.Color, item.Difficulty, -1, item.Craft, false);
+            let newItem = InventoryWear(Player, item.Name, item.Group, item.Color, item.Difficulty, Player.MemberNumber ?? 0, item.Craft, false);
             if (!!newItem) {
                 if (!!item.Property)
                     newItem.Property = item.Property;
