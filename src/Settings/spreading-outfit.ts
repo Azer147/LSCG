@@ -5,6 +5,7 @@ import { MiscModule } from "Modules/misc";
 import { ICONS } from "utils";
 import { GlobalSettingsModel } from "./Models/base";
 import { GuiSubscreen, Setting } from "./settingBase";
+import { drawTooltip } from "./settingUtils";
 import { SpreadingOutfitModule } from "Modules/spreading-outfit";
 import { SpreadingOutfitCodeConfig, SpreadingOutfitSettingsModel } from "./Models/spreading-outfit";
 
@@ -52,7 +53,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 				},<Setting>{
 					type: "label",
 					label: "Allowed remote:",
-					description: "Who can acces the remote settings (based on: Public < Friend < Whitelist < Lover < Owner)",
+					description: "Who can acces the remote settings. (based on: Public < Friend < Whitelist < Lover < Owner)",
 					disabled: !this.settings.enabled
 				},<Setting>{
 					type: "checkbox",
@@ -94,7 +95,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 					type: "number",
 					id: "spreading_repeat_number",
 					label: "Repeat Spreading:",
-					description: "Will start spreading the outfit again for <Loop Number> times, every <Loop Interval>!",
+					description: "Number of spreading cycle repeat.",
 					setting: () => (this.settings.RepeatNumber ?? 5),
 					setSetting: (val) => {
 						this.settings.RepeatNumber = Math.min(20, Math.max(0, val)) // 20 times max
@@ -105,7 +106,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 					type: "number",
 					id: "spreading_repeat_interval",
 					label: "Repeat Interval (min):",
-					description: "Interval between spreading cycles",
+					description: "Interval between spreading cycles.",
 					disabled: !this.settings.enabled,
 					setting: () => (this.settings.RepeatInterval ?? 10),
 					setSetting: (val) => {
@@ -116,7 +117,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 					type: "number",
 					id: "spreading_item_interval",
 					label: "Item Interval (sec):",
-					description: "Interval between each item from the outfit is applied when the spreading starts",
+					description: "Interval between each item from the outfit is applied when the spreading starts.",
 					disabled: !this.settings.enabled,
 					setting: () => (this.settings.ItemInterval ?? 10),
 					setSetting: (val) => {
@@ -126,7 +127,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 				}, <Setting>{
 					type: "checkbox",
 					label: "Outfit1:",
-					description: "Use this outfit (Outfit code needs to be set first)",
+					description: "Enable this outfit. (An Outfit will be randomly choosen among those enabled when the spreading start)",
 					setting: () => this.settings.Outfit1.Enabled ?? false,
 					setSetting: (val) => {
 						this.settings.Outfit1.Enabled = (this.settings.Outfit1.Code != "" && val);
@@ -136,7 +137,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 				}, <Setting>{
 					type: "checkbox",
 					label: "Outfit2:",
-					description: "Use this outfit (Outfit code needs to be set first)",
+					description: "Enable this outfit. (An Outfit will be randomly choosen among those enabled when the spreading start)",
 					setting: () => this.settings.Outfit2.Enabled ?? false,
 					setSetting: (val) => {
 						this.settings.Outfit2.Enabled = (this.settings.Outfit2.Code != "" && val);
@@ -146,7 +147,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 				}, <Setting>{
 					type: "checkbox",
 					label: "Outfit3:",
-					description: "Use this outfit (Outfit code needs to be set first)",
+					description: "Enable this outfit. (An Outfit will be randomly choosen among those enabled when the spreading start)",
 					setting: () => this.settings.Outfit3.Enabled ?? false,
 					setSetting: (val) => {
 						this.settings.Outfit3.Enabled = (this.settings.Outfit3.Code != "" && val);
@@ -272,7 +273,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 		if (PreferencePageCurrent == 1) {
 			// Allowed remote button
 			let allowRemoteButtonLabel = this.getAllowedRemoteToString();
-			DrawButton(780, this.getYPos(2) - 32, 400, this._mainButtonHeight, allowRemoteButtonLabel, (this._startButtonDisabled ? "Grey" : "White"));
+			DrawButton(780, this.getYPos(2) - 32, 400, this._mainButtonHeight, allowRemoteButtonLabel, (this.settings.Active ? "Grey" : "White"), undefined, undefined, this.settings.Active);
 		}
 		else if (PreferencePageCurrent == 2) {
 			//MainCanvas.textAlign = "center";
@@ -316,7 +317,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 
 		if (PreferencePageCurrent == 1) {
 			// Allowed remote button
-			if (MouseIn(780, this.getYPos(2)-32, 400, this._mainButtonHeight)){
+			if (!this.settings.Active && MouseIn(780, this.getYPos(2)-32, 400, this._mainButtonHeight)){
 				this.clickAllowRemote();
 			}
 		}
