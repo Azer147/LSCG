@@ -23,8 +23,6 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 	}
 
 	get disabledReason(): string {
-		var memberIdIsAllowed = ServerChatRoomGetAllowItem(Player, this.Character);
-
 		if (!this.settings.enabled)
 			return "Section is Disabled";
 		if (!this.checkRemoteAccessIsAllowed())
@@ -65,7 +63,7 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 				type: "number",
 				id: "spreading_repeat_number",
 				label: "Repeat Spreading:",
-				description: "Will start spreading the outfit again for <Loop Number> times, every <Loop Interval>!",
+				description: "Number of spreading cycle repeat.",
 				setting: () => (this.settings.RepeatNumber ?? 5),
 				setSetting: (val) => {
 					this.settings.RepeatNumber = Math.min(20, Math.max(0, val)) // 20 times max
@@ -75,7 +73,7 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 				type: "number",
 				id: "spreading_repeat_interval",
 				label: "Repeat Interval (min):",
-				description: "Interval between spreading cycles",
+				description: "Interval between spreading cycles.",
 				disabled: !this.settings.enabled,
 				setting: () => (this.settings.RepeatInterval ?? 10),
 				setSetting: (val) => {
@@ -85,7 +83,7 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 				type: "number",
 				id: "spreading_item_interval",
 				label: "Item Interval (sec):",
-				description: "Interval between each item from the outfit is applied when the spreading starts",
+				description: "Interval between each item from the outfit is applied when the spreading starts.",
 				disabled: !this.settings.enabled,
 				setting: () => (this.settings.ItemInterval ?? 10),
 				setSetting: (val) => {
@@ -94,7 +92,7 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 			}, <Setting>{
 				type: "checkbox",
 				label: "Outfit1:",
-				description: "Use this outfit (Outfit code needs to be set first)",
+				description: "Enable this outfit. (An Outfit will be randomly choosen among those enabled when the spreading start)",
 				setting: () => this.settings.Outfit1.Enabled ?? false,
 				setSetting: (val) => {
 					this.settings.Outfit1.Enabled = (this.settings.Outfit1.Code != "" && val);
@@ -103,7 +101,7 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 			}, <Setting>{
 				type: "checkbox",
 				label: "Outfit2:",
-				description: "Use this outfit (Outfit code needs to be set first)",
+				description: "Enable this outfit. (An Outfit will be randomly choosen among those enabled when the spreading start)",
 				setting: () => this.settings.Outfit2.Enabled ?? false,
 				setSetting: (val) => {
 					this.settings.Outfit2.Enabled = (this.settings.Outfit2.Code != "" && val);
@@ -112,7 +110,7 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 			}, <Setting>{
 				type: "checkbox",
 				label: "Outfit3:",
-				description: "Use this outfit (Outfit code needs to be set first)",
+				description: "Enable this outfit. (An Outfit will be randomly choosen among those enabled when the spreading start)",
 				setting: () => this.settings.Outfit3.Enabled ?? false,
 				setSetting: (val) => {
 					this.settings.Outfit3.Enabled = (this.settings.Outfit3.Code != "" && val);
