@@ -1,16 +1,10 @@
 import { getModule } from "modules";
-import { BoopsModule } from "Modules/boops";
-import { LipstickModule } from "Modules/lipstick";
-import { MiscModule } from "Modules/misc";
 import { ICONS } from "utils";
-import { GlobalSettingsModel } from "./Models/base";
 import { GuiSubscreen, Setting } from "./settingBase";
-import { drawTooltip } from "./settingUtils";
 import { SpreadingOutfitModule } from "Modules/spreading-outfit";
-import { SpreadingOutfitCodeConfig, SpreadingOutfitSettingsModel } from "./Models/spreading-outfit";
-
-import { stringIsCompressedItemBundleArray } from "utils";
 import { RedressedState } from "Modules/States/RedressedState";
+import { SpreadingOutfitCodeConfig, SpreadingOutfitSettingsModel } from "./Models/spreading-outfit";
+import { stringIsCompressedItemBundleArray } from "utils";
 
 export class GuiSpreadingOutfit extends GuiSubscreen {
 
@@ -259,8 +253,6 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 			DrawTextFit("Paste Outfit Code:", coords.x + 50, (coords.y + coords.h/2) - 50, coords.w - 100 - buttonWidth, "Black", "Grey");
 			MainCanvas.textAlign = "center";
 			ElementPosition(this.outfitFieldId, coords.x + (coords.w/2) - (buttonWidth/2), (coords.y + coords.h/2) + 20, coords.w - 100 - buttonWidth);
-			//ElementPositionFix(this.outfitDropId, 28, coords.x + 450, (coords.y + coords.h / 2) - 50 - 19, 340, 64);
-			//DrawEmptyRect(coords.x + 445, (coords.y + coords.h / 2) - 48 - 32, 350, 68, "Black", 3);
 			DrawButton(1350, 500 - 32, 100, 64, "Confirm", "White");
 			return;
 		}
@@ -276,8 +268,6 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 			DrawButton(780, this.getYPos(2) - 32, 400, this._mainButtonHeight, allowRemoteButtonLabel, "White");
 		}
 		else if (PreferencePageCurrent == 2) {
-			//MainCanvas.textAlign = "center";
-
 			this.updateDisabledButton();
 			// Draw Start button
 			DrawButton(200, this.getYPos(0) - 32, this._mainButtonWidth, this._mainButtonHeight, "Start", (this._startButtonDisabled ? "Grey" : "White"), undefined, undefined, this._startButtonDisabled);
@@ -297,7 +287,6 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 	Click(): void {
 		if (this._ConfigureOutfit > 0) {
 			let coords = {x: 500, y: 400, w: 1000, h: 200};
-			let buttonWidth = 150;
 			if (!MouseIn(coords.x, coords.y, coords.w, coords.h)) this._ConfigureOutfit = 0;
 			else if (MouseIn(1350, 500 - 32, 100, 64)) this.ConfirmOutfit();
 			return;
@@ -376,7 +365,6 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 		if (!outfit) outfit = {Code: "", Enabled: false};
 
 		this.ElementSetValue(this.outfitFieldId, outfit.Code ?? "");
-		//this.ElementSetValue(this.outfitDropId, this.Spell.Outfit?.Option ?? OutfitOption.clothes_only);
 		this._ConfigureOutfit = outfitNumber;
 	}
 	ConfirmOutfit() {

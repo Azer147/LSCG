@@ -167,12 +167,10 @@ export class PublicSettingsModel implements IPublicSettingsModel {
         Outfit1: {Code: "", Enabled: false},
         Outfit2: {Code: "", Enabled: false},
         Outfit3: {Code: "", Enabled: false},
-        DelayActive: false,
-        DelayTime: 0,
         RepeatInterval: 10,
         RepeatNumber: 5,
         ItemInterval: 30,
-        Internal: {CurrentOutfitIndex: 0, CurrentRepeatNumber: 0, NextActivationTime: 0, ActivatedBy: 0},
+        Internal: {CurrentOutfitIndex: 0, CurrentRepeatNumber: 0, NextActivationTime: 0},
         StartSpreadingTriggerWords: "",
         ActivateCurseTriggerWords: ""
     };

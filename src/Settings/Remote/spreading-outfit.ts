@@ -1,10 +1,8 @@
 import { RemoteGuiSubscreen } from "./remoteBase";
 import { Setting } from "Settings/settingBase";
 import { GetDelimitedList, ICONS, replace_template } from "utils";
-import { StateConfig } from "Settings/Models/states";
 import { SpreadingOutfitPublicSettingsModel, SpreadingOutfitCodeConfig } from "Settings/Models/spreading-outfit";
 import { GuiSpreadingOutfit } from "Settings/spreading-outfit";
-import { drawTooltip } from "Settings/settingUtils";
 import { RedressedState } from "Modules/States/RedressedState";
 
 export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
@@ -224,8 +222,6 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 			DrawTextFit("Paste Outfit Code:", coords.x + 50, (coords.y + coords.h/2) - 50, coords.w - 100 - buttonWidth, "Black", "Grey");
 			MainCanvas.textAlign = "center";
 			ElementPosition(this.outfitFieldId, coords.x + (coords.w/2) - (buttonWidth/2), (coords.y + coords.h/2) + 20, coords.w - 100 - buttonWidth);
-			//ElementPositionFix(this.outfitDropId, 28, coords.x + 450, (coords.y + coords.h / 2) - 50 - 19, 340, 64);
-			//DrawEmptyRect(coords.x + 445, (coords.y + coords.h / 2) - 48 - 32, 350, 68, "Black", 3);
 			DrawButton(1350, 500 - 32, 100, 64, "Confirm", "White");
 			return;
 		}
@@ -234,9 +230,6 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 
 		this.ElementHide(this.outfitFieldId);
 
-		//MainCanvas.textAlign = "left";
-		//DrawTextFit(GuiMagic.SpellEffectDescription(this.Spell.Effects[1]), 780, this.getYPos(6), 1000, "Black");
-		//MainCanvas.textAlign = "center";
 		if (PreferencePageCurrent == 1) {
 			MainCanvas.textAlign = "center";
 			this.updateDisabledButton();
@@ -278,14 +271,12 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 			// Start button click
 			if (!this._startButtonDisabled) {
 				if (MouseIn(200, this.getYPos(0)-32, this._mainButtonWidth, this._mainButtonHeight)){
-					// TODO
 					this.settings.Active = true;
 				}
 			}
 			// Stop button click
 			if (!this._stopButtonDisabled) {
 				if (MouseIn(300 + this._mainButtonWidth, this.getYPos(0)-32, this._mainButtonWidth, this._mainButtonHeight)){
-					// TODO
 					this.settings.Active = false;
 				}
 			}
@@ -330,7 +321,6 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 		if (!outfit) outfit = {Code: "", Enabled: false};
 
 		this.ElementSetValue(this.outfitFieldId, outfit.Code ?? "");
-		//this.ElementSetValue(this.outfitDropId, this.Spell.Outfit?.Option ?? OutfitOption.clothes_only);
 		this._ConfigureOutfit = outfitNumber;
 	}
 	ConfirmOutfit() {

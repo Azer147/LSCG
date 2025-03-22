@@ -1,18 +1,16 @@
 import { BaseModule } from "base";
 import { getModule } from "modules";
 import { ModuleCategory, Subscreen } from "Settings/setting_definitions";
-import { OnActivity, SendAction, getCharacter, getRandomInt, OnChat, settingsSave, removeAllHooksByModule, isPhraseInString, GetDelimitedList } from "../utils";
-import { ActivityModule, ActivityTarget } from "./activities";
+import { SendAction, getRandomInt, OnChat, settingsSave, removeAllHooksByModule, isPhraseInString, GetDelimitedList } from "../utils";
 //import { KNOWN_SPELLS_LIMIT, LSCGSpellEffect, SpreadingOutfitSettingsModel, OutfitConfig, OutfitOption, SpellDefinition } from "Settings/Models/magic";
 import { SpreadingOutfitSettingsModel, SpreadingOutfitCodeConfig } from "Settings/Models/spreading-outfit";
 import { GuiSpreadingOutfit } from "Settings/spreading-outfit";
 import { StateModule } from "./states";
-import { InjectorModule } from "./injector";
 import { BaseState } from "./States/BaseState";
-import { RedressedState } from "./States/RedressedState";
 
 export class SpreadingOutfitModule extends BaseModule {
     nextActivationTriggerTimeout: number | undefined = undefined;
+    debug: boolean = false;
 
     get Enabled(): boolean {
 		return super.Enabled;
@@ -24,14 +22,12 @@ export class SpreadingOutfitModule extends BaseModule {
             Active: false,
             Locked: false,
             Lockable: false,
-            Internal: {CurrentOutfitIndex: 0, CurrentRepeatNumber: 0, NextActivationTime: 0, ActivatedBy: 0},
+            Internal: {CurrentOutfitIndex: 0, CurrentRepeatNumber: 0, NextActivationTime: 0},
             AllowedRemote: "Self",
             AllowSelfStop: true,
             Outfit1: {Code: "", Enabled: false},
             Outfit2: {Code: "", Enabled: false},
             Outfit3: {Code: "", Enabled: false},
-            //DelayActive: false,
-            //DelayTime: 0,
             RepeatNumber: 5,
             RepeatInterval: 10,
             ItemInterval: 30,
@@ -53,8 +49,6 @@ export class SpreadingOutfitModule extends BaseModule {
     }
 
     load(): void {
-        // TODO: interval with checkStartStopNeeded() ?? (not sure yet since settings should trigger check)
-
         if (this.settings.Active && !this.stateModule.SpreadingOutfitState.Active) {
             this.setupNextActivationTimeout();
         }
@@ -64,11 +58,11 @@ export class SpreadingOutfitModule extends BaseModule {
                 return;
 
             if (this.settings.Active && this.isMsgHaveTrigger(msg, this.settings.StartSpreadingTriggerWords)) {
-                console.log("StartSpreadingTriggerWords [", this.settings.StartSpreadingTriggerWords, "] found in msg=", msg);
+                if (this.debug) console.log("StartSpreadingTriggerWords [", this.settings.StartSpreadingTriggerWords, "] found in msg=", msg);
                 this.startSpreadingState();
             }
             else if (this.isMsgHaveTrigger(msg, this.settings.ActivateCurseTriggerWords)) {
-                console.log("ActivateCurseTriggerWords [", this.settings.ActivateCurseTriggerWords, "] found in msg=", msg);
+                if (this.debug) console.log("ActivateCurseTriggerWords [", this.settings.ActivateCurseTriggerWords, "] found in msg=", msg);
                 this.startSpreadingOutfitTriggered();
             }
         });
@@ -107,12 +101,12 @@ export class SpreadingOutfitModule extends BaseModule {
         var hours = Math.floor(timeToNextActivation / 3600000);
         var minutes = Math.floor((timeToNextActivation % 3600000) / 60000);
         var seconds = Math.floor(((timeToNextActivation % 360000) % 60000) / 1000);
-        console.log("setupNextActivationTimeout: set trigger next activation in ", hours, "h ", minutes, "m ", seconds, "s");
+        if (this.debug) console.log("setupNextActivationTimeout: set trigger next activation in ", hours, "h ", minutes, "m ", seconds, "s");
     }
 
     // Called when settings might have changed
     checkStartStopNeeded() {
-        console.log("checkStartStopNeeded");
+        if (this.debug) console.log("checkStartStopNeeded");
         if (this.settings.Active) {
             this.startSpreadingOutfitTriggered();
         }
@@ -122,8 +116,7 @@ export class SpreadingOutfitModule extends BaseModule {
     }
 
     startSpreadingOutfitTriggered() {
-        console.log("startSpreadingOutfitTriggered");
-        // TODO: check all settings first ?
+        if (this.debug) console.log("startSpreadingOutfitTriggered");
 
         this.settings.Active = true;
         if (!this.nextActivationTriggerTimeout) {
@@ -132,8 +125,8 @@ export class SpreadingOutfitModule extends BaseModule {
     }
 
     stopSpreadingOutfitTriggered() {
-        console.log("stopSpreadingOutfitTriggered");
-        // Clean Internal var
+        if (this.debug) console.log("stopSpreadingOutfitTriggered");
+        // Clean all Internal var
         let wasActive = false;
 
         if (this.settings.Active) {
@@ -164,7 +157,7 @@ export class SpreadingOutfitModule extends BaseModule {
     startSpreadingState() {
         if (!this.settings.Active) return;
         if (this.stateModule.SpreadingOutfitState.Active) return;
-        console.warn("startSpreadingState: settings=", this.settings);
+        if (this.debug) console.log("startSpreadingState: settings=", this.settings);
         if (!this.checkSettingsValidForStart()) {
             console.error("startSpreadingState: settings are not valid settings=", this.settings);
             this.settings.Active = false;
@@ -179,16 +172,14 @@ export class SpreadingOutfitModule extends BaseModule {
         }
 
         this.settings.Internal.CurrentRepeatNumber += 1;
-        console.log("startSpreadingState: increasing CurrentRepeatNumber=", this.settings.Internal.CurrentRepeatNumber, " / ", this.settings.RepeatNumber);
+        if (this.debug) console.log("startSpreadingState: increasing CurrentRepeatNumber=", this.settings.Internal.CurrentRepeatNumber, " / ", this.settings.RepeatNumber);
 
         SendAction("%NAME% squeaks as a cursed clothes start to spread slowly around %INTENSIVE%.");
-        //SendAction(`%NAME%'s cursed outfit magic effect can now only be removed by ${senderName} or when the outfit will be spread fully.`);
 
         // Select CurrentOutfitIndex
         this.settings.Internal.CurrentOutfitIndex = this.selectRandomCurrentOutfit();
-        console.log("startSpreadingState: Selected CurrentOutfitIndex=", this.settings.Internal.CurrentOutfitIndex);
+        if (this.debug) console.log("startSpreadingState: Selected CurrentOutfitIndex=", this.settings.Internal.CurrentOutfitIndex);
 
-        //state = this.stateModule.SpreadingOutfitState.Apply(spell, sender?.MemberNumber);
         var state: BaseState | undefined = this.stateModule.SpreadingOutfitState.Activate();
         if (!state) {
             console.error("startSpreadingState: outfit", this.settings.Internal.CurrentOutfitIndex," is not valid! settings=", this.settings);
@@ -202,7 +193,7 @@ export class SpreadingOutfitModule extends BaseModule {
 
     finishingSpreadingState() {
         if (!this.settings.Active) return;
-        console.warn("finishingSpreadingState");
+        if (this.debug) console.log("finishingSpreadingState");
         if (this.settings.Internal.CurrentRepeatNumber > this.settings.RepeatNumber) {
             this.stopSpreadingOutfitTriggered();
             return;
@@ -210,7 +201,7 @@ export class SpreadingOutfitModule extends BaseModule {
 
         // set next activation time for the next loop
         // Note: I don't think we need to check for max anymore since the settings page should prevent bad value
-        //if (loopInterval > SpreadingOutfitState.MAX_LOOP_INTERVAL) loopInterval = SpreadingOutfitState.MAX_LOOP_INTERVAL;
+        //if (Repeat Interval > SpreadingOutfitState.MAX_LOOP_INTERVAL) loopInterval = SpreadingOutfitState.MAX_LOOP_INTERVAL;
         this.settings.Internal.NextActivationTime = CommonTime() + (this.settings.RepeatInterval * 60 * 1000);
         settingsSave(true);
 
