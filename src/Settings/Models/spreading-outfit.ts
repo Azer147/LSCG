@@ -5,6 +5,7 @@ export interface SpreadingOutfitModuleStats extends ModuleStats {
     CurrentOutfitIndex: number;
     CurrentRepeatNumber: number;
     NextActivationTime: number; // in ms
+    LastUsedOutfitIndex: number;
 }
 
 export interface SpreadingOutfitSettingsModel extends SpreadingOutfitPublicSettingsModel {

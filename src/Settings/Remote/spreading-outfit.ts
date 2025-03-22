@@ -325,6 +325,9 @@ export class RemoteSpreadingOutfit extends RemoteGuiSubscreen {
 	}
 	ConfirmOutfit() {
 		let outfit = this.getOutfitObjFromNumber(this._ConfigureOutfit);
+		// reset LastUsedOutfitIndex on outfit change)
+		if (this.settings.Internal.LastUsedOutfitIndex == this._ConfigureOutfit) this.settings.Internal.LastUsedOutfitIndex = -1;
+
 		this._ConfigureOutfit = 0;
 		if (!outfit) outfit = {Code: "", Enabled: false};
 		let outfitCode = GuiSpreadingOutfit.ParseCode(ElementValue(this.outfitFieldId), code => RedressedState.CleanItemCode(code));

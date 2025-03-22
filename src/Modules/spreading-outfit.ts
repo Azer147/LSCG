@@ -22,7 +22,7 @@ export class SpreadingOutfitModule extends BaseModule {
             Active: false,
             Locked: false,
             Lockable: false,
-            Internal: {CurrentOutfitIndex: 0, CurrentRepeatNumber: 0, NextActivationTime: 0},
+            Internal: {CurrentOutfitIndex: 0, CurrentRepeatNumber: 0, NextActivationTime: 0, LastUsedOutfitIndex: -1},
             AllowedRemote: "Self",
             AllowSelfStop: true,
             Outfit1: {Code: "", Enabled: false},
@@ -178,6 +178,7 @@ export class SpreadingOutfitModule extends BaseModule {
 
         // Select CurrentOutfitIndex
         this.settings.Internal.CurrentOutfitIndex = this.selectRandomCurrentOutfit();
+        this.settings.Internal.LastUsedOutfitIndex = this.settings.Internal.CurrentOutfitIndex;
         if (this.debug) console.log("startSpreadingState: Selected CurrentOutfitIndex=", this.settings.Internal.CurrentOutfitIndex);
 
         var state: BaseState | undefined = this.stateModule.SpreadingOutfitState.Activate();
@@ -231,6 +232,14 @@ export class SpreadingOutfitModule extends BaseModule {
         if (this.settings.Outfit2.Enabled) index_available.push(2);
         if (this.settings.Outfit3.Enabled) index_available.push(3);
         if (index_available.length <= 0) return 0; // Should not be possible as it should be detected before in this.checkSettings()
+
+        // Avoid using the same outfit twice in a row if possible
+        if (index_available.length > 1 && this.settings.Internal.LastUsedOutfitIndex >= 0) {
+            let idx = index_available.indexOf(this.settings.Internal.LastUsedOutfitIndex);
+            if (idx != -1) {
+                index_available.splice(idx, 1);
+            }
+        }
 
         if (index_available.length == 1) {
             // Only one choice is valid
