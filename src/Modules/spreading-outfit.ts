@@ -26,7 +26,7 @@ export class SpreadingOutfitModule extends BaseModule {
             Lockable: false,
             Internal: {CurrentOutfitIndex: 0, CurrentRepeatNumber: 0, NextActivationTime: 0, ActivatedBy: 0},
             AllowedRemote: "Self",
-            AllowSelfStop: false,
+            AllowSelfStop: true,
             Outfit1: {Code: "", Enabled: false},
             Outfit2: {Code: "", Enabled: false},
             Outfit3: {Code: "", Enabled: false},
@@ -94,7 +94,7 @@ export class SpreadingOutfitModule extends BaseModule {
         var triggerWords = GetDelimitedList(triggers);
 
         let matched = triggerWords.some(trigger => {
-            return isPhraseInString(msg, trigger);
+            return isPhraseInString(msg.toLowerCase(), trigger);
         })
         return matched;
     }

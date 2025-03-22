@@ -46,7 +46,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 				},<Setting>{
 					type: "checkbox",
 					label: "Lockable:",
-					description: "If checked, allowed users can lock you out of these settings.",
+					description: "If checked, allowed users can lock you out of these settings. (BE CAREFUL WITH THIS!)",
 					setting: () => this.settings.Lockable ?? false,
 					setSetting: (val) => this.settings.Lockable = val,
 					disabled: !this.settings.enabled
@@ -273,7 +273,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 		if (PreferencePageCurrent == 1) {
 			// Allowed remote button
 			let allowRemoteButtonLabel = this.getAllowedRemoteToString();
-			DrawButton(780, this.getYPos(2) - 32, 400, this._mainButtonHeight, allowRemoteButtonLabel, (this.settings.Active ? "Grey" : "White"), undefined, undefined, this.settings.Active);
+			DrawButton(780, this.getYPos(2) - 32, 400, this._mainButtonHeight, allowRemoteButtonLabel, "White");
 		}
 		else if (PreferencePageCurrent == 2) {
 			//MainCanvas.textAlign = "center";
@@ -317,7 +317,7 @@ export class GuiSpreadingOutfit extends GuiSubscreen {
 
 		if (PreferencePageCurrent == 1) {
 			// Allowed remote button
-			if (!this.settings.Active && MouseIn(780, this.getYPos(2)-32, 400, this._mainButtonHeight)){
+			if (MouseIn(780, this.getYPos(2)-32, 400, this._mainButtonHeight)){
 				this.clickAllowRemote();
 			}
 		}
