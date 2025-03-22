@@ -1,17 +1,12 @@
-import { getRandomInt, getCharacter, isBind, isCloth, SendAction, settingsSave, stringIsCompressedItemBundleArray } from "utils";
+import { isBind, isCloth, SendAction, settingsSave, stringIsCompressedItemBundleArray } from "utils";
 import { getModule } from "modules";
 import { BaseState } from "./BaseState";
 import { StateModule } from "Modules/states";
-import { ItemBundleBaseState } from "Modules/States/ItemBundleBaseState";
 //import { OutfitOption, SpellDefinition } from "Settings/Models/magic";
 import { SpreadingOutfitModule } from "Modules/spreading-outfit";
 import { SpreadingOutfitSettingsModel, SpreadingOutfitCodeConfig } from "Settings/Models/spreading-outfit";
 
 export class SpreadingOutfitState extends BaseState {
-    static MAX_DELAY_TIME: number = 60 * 100; // 100h in minutes
-    static MAX_LOOP_INTERVAL: number = 60 * 24; // 24h in minutes
-    static MAX_LOOP_NUMBER: number = 20;
-
     _settings : SpreadingOutfitSettingsModel | undefined;
     get Settings() {
         if (!this._settings)
@@ -129,7 +124,6 @@ export class SpreadingOutfitState extends BaseState {
 
     Activate(memberNumber?: number, duration?: number, emote?: boolean): BaseState | undefined {
         try {
-            console.log("Activate SpreadingOutfitState: settings=", this.Settings);
             if (!this.checkSettingsValid()) return undefined;
 
             let outfitList = this.GetConfiguredItemBundles(this.getCurrentOutfitFromSettings().Code, item => SpreadingOutfitState.ItemIsAllowed(item));
@@ -178,7 +172,6 @@ export class SpreadingOutfitState extends BaseState {
             if (!!newItem) {
                 if (!!item.Property)
                     newItem.Property = item.Property;
-                //let itemName = (newItem?.Craft?.Name ?? newItem.Asset.Name);
                 let itemName = (newItem?.Craft?.Name ?? item.Name);
                 SendAction(`%NAME%'s cursed outfit is spreading, adding ${itemName}.`);
                 ChatRoomCharacterUpdate(Player);
