@@ -18,6 +18,6 @@
     var script = document.createElement("script");
     script.langauge = "JavaScript";
     script.setAttribute("crossorigin", "anonymous");
-    script.src = `https://littlesera.github.io/LSCG/dev/bundle.js?${Date.now()}`;
+    script.src = `https://azer147.github.io/LSCG/dev/bundle.js?${Date.now()}`;
     document.head.appendChild(script);
 })();
