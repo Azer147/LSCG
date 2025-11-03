@@ -18,6 +18,7 @@ import { StateModule } from 'Modules/states';
 import { MagicModule } from 'Modules/magic';
 import { CursedItemModule } from 'Modules/cursed-item';
 import { OpacityModule } from 'Modules/opacity';
+import { SleepControlModule } from 'Modules/sleep-control';
 import { lt } from 'semver';
 import { LeashingModule } from 'Modules/leashing';
 import { ChaoticItemModule } from './Modules/chaotic-item';
@@ -163,6 +164,7 @@ function init_modules(): boolean {
 	registerModule(new ChaoticItemModule());
 	registerModule(new SplatterModule());
 	registerModule(new CursedItemModule());
+	registerModule(new SleepControlModule());
 
 	for (const m of modules()) {
 		m.init();

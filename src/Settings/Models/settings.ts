@@ -10,6 +10,7 @@ import { StatePublicSettingsModel, StateSettingsModel } from "./states";
 import { MagicPublicSettingsModel, MagicSettingsModel } from "./magic";
 import { ChaoticItemModule } from "Modules/chaotic-item";
 import { CursedItemSettingsModel } from "./cursed-item";
+import { SleepControlSettingsModel } from "./sleep-control";
 
 export interface SettingsModel {
     Version: string;
@@ -30,6 +31,7 @@ export interface SettingsModel {
     LeashingModule: BaseSettingsModel;
     ChaoticItemModule: BaseSettingsModel;
     SplatterModule: SplatterSettingsModel;
+    SleepControlModule: SleepControlSettingsModel;
 }
 
 export interface IPublicSettingsModel extends BaseSettingsModel {
@@ -48,6 +50,7 @@ export interface IPublicSettingsModel extends BaseSettingsModel {
     LeashingModule: BaseSettingsModel;
     ChaoticItemModule: BaseSettingsModel;
     SplatterModule: SplatterSettingsModel;
+    SleepControlModule: SleepControlSettingsModel;
 }
 
 export class PublicSettingsModel implements IPublicSettingsModel {
@@ -180,5 +183,30 @@ export class PublicSettingsModel implements IPublicSettingsModel {
         whitelist: [],
         requireLover: false,
         minArousal: 90
+    };
+    SleepControlModule: SleepControlSettingsModel = <SleepControlSettingsModel>{
+        enabled: false,
+        TodaySleepTime: undefined, // (internal setting, take account for cmds)
+        MondaySleepTime: {Hours: 0, Minutes: 0},
+        TuesdaySleepTime: {Hours: 0, Minutes: 0},
+        WednesdaySleepTime: {Hours: 0, Minutes: 0},
+        ThursdaySleepTime: {Hours: 0, Minutes: 0},
+        FridaySleepTime: {Hours: 0, Minutes: 0},
+        SaturdaySleepTime: {Hours: 0, Minutes: 0},
+        SundaySleepTime: {Hours: 0, Minutes: 0},
+        Allowed: "Whitelist",
+        LockedUntil: undefined,
+        SelfAllowChatCommands: true,
+        WarningTime: {Hours: 0, Minutes: 10},
+        SleepTimeTolerance: {Hours: 1, Minutes: 0},
+        DelayTime: {Hours: 0, Minutes: 20},
+        TimeoutTime: {Hours: 0, Minutes: 5},
+        SleepTimeDuration: {Hours: 6, Minutes: 0},
+        //SleepOutfitKey: undefined,
+        UseOutfit: false,
+        UseBlindState: false,
+        UseDeafenState: false,
+        UseMuteState: false,
+        UseSleepState: false,
     };
 }
