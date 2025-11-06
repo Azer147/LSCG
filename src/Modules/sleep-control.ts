@@ -16,12 +16,14 @@ import { GuiSleepControl } from "Settings/sleep-control";
 export class SleepControlModule extends BaseModule {
     DEFAULT_CHECK_TIME_MS: number = 30000; // 30sec
     checkInterval: number = 0;
+    enforceCmdCount: number = 0;
+    disableCmdCount: number = 0;
 
     SleepControlPublicCommand: Map<string, () => void> = new Map([
         ["SLEEP MODE HELP", () => { this.commandHelp(); }],
         ["SLEEP MODE INFO", () => { this.commandInfo(); }],
         ["SLEEP MODE DELAY", () => { this.commandDelay(); }],
-        ["SLEEP MODE TIMEOUT", () => { console.log("test command SLEEP MODE TIMEOUT"); }],
+        /*["SLEEP MODE TIMEOUT", () => { console.log("test command SLEEP MODE TIMEOUT"); }],*/
         ["SLEEP MODE RESET", () => { this.commandReset(); }],
         ["SLEEP MODE DISABLE", () => { this.commandDisable(); }],
         ["SLEEP MODE ENFORCE", () => { this.commandEnforce(); }]
@@ -272,7 +274,7 @@ export class SleepControlModule extends BaseModule {
         // getCurrentSleepTime also do releaseSleepMode() if needed
         let curSleepTime = this.getCurrentSleepTime();
         if (!curSleepTime) {
-            console.log("sleepModeCheck: Sleep mode is disabled for today !");
+            //console.log("sleepModeCheck: Sleep mode is disabled for today !");
             return;
         }
 
@@ -293,7 +295,7 @@ export class SleepControlModule extends BaseModule {
 
     enforceSleepMode() {
         if (this.settings.TodaySleepTime && this.settings.TodaySleepTime.SleepModeActive) {
-            // nothing to do
+            this.applySleepModeEffects(false);
             return;
         }
         this.getCurrentSleepTime();
@@ -309,12 +311,12 @@ export class SleepControlModule extends BaseModule {
         this.settings.TodaySleepTime = todaySleepTime;
         settingsSave(true);
 
-        let outfitCode = getModule<OutfitCollectionModule>("OutfitCollectionModule")?.data.GetOutfitCode(this.settings.SleepOutfitKey);
-        if (!outfitCode) {
-            return;
-        }
+        this.applySleepModeEffects(true);
+    }
 
-        if (this.settings.UseOutfit) {
+    applySleepModeEffects(force: boolean) {
+        let outfitCode = getModule<OutfitCollectionModule>("OutfitCollectionModule")?.data.GetOutfitCode(this.settings.SleepOutfitKey);
+        if (this.settings.UseOutfit && outfitCode && (force || !this.stateModule.RedressedState.Active)) {
             let fakeSpell: SpellDefinition = {
                 Name: "Sleep Mode",
                 Creator: Player.MemberNumber,
@@ -328,16 +330,16 @@ export class SleepControlModule extends BaseModule {
             this.stateModule.RedressedState.Apply(fakeSpell);
         }
 
-        if (this.settings.UseBlindState) {
+        if (this.settings.UseBlindState && (force || !this.stateModule.BlindState.Active)) {
             this.stateModule.BlindState.Activate();
         }
-        if (this.settings.UseDeafenState) {
+        if (this.settings.UseDeafenState && (force || !this.stateModule.DeafState.Active)) {
             this.stateModule.DeafState.Activate();
         }
-        if (this.settings.UseMuteState) {
+        if (this.settings.UseMuteState && (force || !this.stateModule.GaggedState.Active)) {
             this.stateModule.GaggedState.Activate();
         }
-        if (this.settings.UseSleepState) {
+        if (this.settings.UseSleepState && (force || !this.stateModule.SleepState.Active)) {
             this.stateModule.SleepState.Activate();
         }
     }
@@ -527,6 +529,7 @@ export class SleepControlModule extends BaseModule {
             }
             this.settings.TodaySleepTime.CurrentSleepTime = newSleepTime.toString();
             this.settings.TodaySleepTime.WarningStepDone = 0;
+            this.settings.TodaySleepTime.SleepModeActive = false;
             settingsSave(true);
             SendAction(`%NAME% Sleep mode time is delayed, scheduled in ${SleepControlModule.getRelativeTimeToString(newSleepTime.getTime() - dateNow.getTime())}`);
             return;
@@ -536,11 +539,28 @@ export class SleepControlModule extends BaseModule {
     }
 
     commandEnforce() {
+        this.enforceCmdCount += 1;
+        if (this.enforceCmdCount < 2) {
+            SendAction(`Sleep mode ENFORCE: Are you sure, this will last ${this.HourMinutesToString(this.settings.SleepTimeDuration)} ? Enter ENFORCE command once again to confirm.`);
+            return;
+        }
+        this.enforceCmdCount = 0;
         SendAction(`Sleep mode ENFORCE command accepted, %NAME%'s Sleep mode is starting immediatly`);
         this.enforceSleepMode();
     }
 
     commandDisable() {
+        this.disableCmdCount += 1;
+        if (this.disableCmdCount == 1) {
+            SendAction(`Sleep mode DISABLE: Are you sure ? Don't listen to %NAME% too much, she need to sleep...\nIf you are sure, enter DISABLE command 2 more time to confirm.`);
+        }
+        if (this.disableCmdCount == 2) {
+            SendAction(`Sleep mode DISABLE: Are you really sure ? Enter DISABLE command one last time to confirm.`);
+        }
+        if (this.disableCmdCount < 3) {
+            return;
+        }
+        this.disableCmdCount = 0;
         SendAction(`Sleep mode DISABLE command accepted, %NAME%'s Sleep mode is disabled for today`);
         this.releaseSleepMode();
 
@@ -564,13 +584,19 @@ export class SleepControlModule extends BaseModule {
     }
 
     inSleepMode(dateNow: Date): boolean {
+        if (this.settings.TodaySleepTime && this.settings.TodaySleepTime.SleepModeActive) {
+            return true;
+        }
+
+        // Secondary failsafe (not sure if usefull)
+        /*
         let curSleepDate = this.getCurrentSleepTime();
         if (!curSleepDate) {
             return false;
         }
         else if (dateNow > curSleepDate) {
             return true;
-        }
+        }*/
 
         return false;
     }
